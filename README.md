@@ -15,7 +15,7 @@ Note: this was one of my first projects in Go as well as with binary decoding. I
 
 the ase package exposes a Decode method. You simply create a new ASE struct and pass a string to the Decode method of a local file location. For example:
 
-```
+```go
 package main
 
 import (
