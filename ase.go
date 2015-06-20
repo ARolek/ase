@@ -33,17 +33,17 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 
 	fileBuf := bytes.NewReader(file)
 
-	err = ase.ReadSignature(fileBuf)
+	err = ase.readSignature(fileBuf)
 	if err != nil {
 		return err
 	}
 
-	err = ase.ReadVersion(fileBuf)
+	err = ase.readVersion(fileBuf)
 	if err != nil {
 		return err
 	}
 
-	err = ase.ReadNumBlock(fileBuf)
+	err = ase.readNumBlock(fileBuf)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 
 //	ASE Files start are signed with ASEF at the beginning of the file
 //	let's make sure this is an ASE file
-func (ase *ASE) ReadSignature(file *bytes.Reader) error {
+func (ase *ASE) readSignature(file *bytes.Reader) error {
 	signature := make([]uint8, 4)
 
 	err := binary.Read(file, binary.BigEndian, &signature)
@@ -111,7 +111,7 @@ func (ase *ASE) ReadSignature(file *bytes.Reader) error {
 }
 
 //	ASE version. Should be 1.0
-func (ase *ASE) ReadVersion(file *bytes.Reader) error {
+func (ase *ASE) readVersion(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &ase.Version)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func (ase *ASE) ReadVersion(file *bytes.Reader) error {
 }
 
 //	Total number of blocks in the ASE file
-func (ase *ASE) ReadNumBlock(file *bytes.Reader) error {
+func (ase *ASE) readNumBlock(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &ase.NumBlocks)
 	if err != nil {
 		return err
