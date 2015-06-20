@@ -12,12 +12,12 @@ type Block struct {
 
 func (block *Block) Read(file *bytes.Reader) error {
 	var err error
-	err = block.ReadType(file)
+	err = block.readType(file)
 	if err != nil {
 		return err
 	}
 
-	err = block.ReadLength(file)
+	err = block.readLength(file)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (block *Block) Read(file *bytes.Reader) error {
 //	0xc001 ⇒ Group start
 //	0xc002 ⇒ Group end
 //	0x0001 ⇒ Color entry
-func (block *Block) ReadType(file *bytes.Reader) error {
+func (block *Block) readType(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &block.Type)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (block *Block) ReadType(file *bytes.Reader) error {
 	return nil
 }
 
-func (block *Block) ReadLength(file *bytes.Reader) error {
+func (block *Block) readLength(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &block.Length)
 	if err != nil {
 		return err
