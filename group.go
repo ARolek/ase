@@ -14,12 +14,12 @@ type Group struct {
 
 func (group *Group) Read(file *bytes.Reader) error {
 	var err error
-	err = group.ReadNameLen(file)
+	err = group.readNameLen(file)
 	if err != nil {
 		return err
 	}
 
-	err = group.ReadName(file)
+	err = group.readName(file)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (group *Group) Read(file *bytes.Reader) error {
 	return nil
 }
 
-func (group *Group) ReadNameLen(file *bytes.Reader) error {
+func (group *Group) readNameLen(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &group.NameLen)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (group *Group) ReadNameLen(file *bytes.Reader) error {
 	return nil
 }
 
-func (group *Group) ReadName(file *bytes.Reader) error {
+func (group *Group) readName(file *bytes.Reader) error {
 	//	make array for our color name based on block length
 	name := make([]uint16, group.NameLen)
 	err := binary.Read(file, binary.BigEndian, &name)
