@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"log"
 	"strings"
 	"unicode/utf16"
 )
@@ -78,7 +77,6 @@ func (color *Color) ReadColorModel(file *bytes.Reader) error {
 	}
 
 	color.Model = strings.TrimSpace(string(colorModel[0:]))
-	//log.Println(color.Model)
 
 	return nil
 }
@@ -87,44 +85,36 @@ func (color *Color) ReadColorValues(file *bytes.Reader) error {
 	var err error
 	switch color.Model {
 	case "RGB":
-		log.Println("RGB")
 		rgb := make([]float32, 3)
 		err = binary.Read(file, binary.BigEndian, &rgb)
 		if err != nil {
 			return err
 		}
 		color.Values = rgb
-		log.Println(color.Values)
 		break
 	case "LAB":
-		log.Println("LAB")
 		lab := make([]float32, 3)
 		err = binary.Read(file, binary.BigEndian, &lab)
 		if err != nil {
 			return err
 		}
 		color.Values = lab
-		log.Println(lab)
 		break
 	case "CMYK":
-		log.Println("CMYK")
 		cmyk := make([]float32, 4)
 		err = binary.Read(file, binary.BigEndian, &cmyk)
 		if err != nil {
 			return err
 		}
 		color.Values = cmyk
-		log.Println(cmyk)
 		break
 	case "Gray":
-		log.Println("Gray")
 		gray := make([]float32, 1)
 		err = binary.Read(file, binary.BigEndian, &gray)
 		if err != nil {
 			return err
 		}
 		color.Values = gray
-		log.Println(gray)
 		break
 	}
 
@@ -138,7 +128,6 @@ func (color *Color) ReadColorType(file *bytes.Reader) error {
 	if err != nil {
 		return err
 	}
-	//	log.Println(color.Type)
 
 	switch colorType[0] {
 	case 0:

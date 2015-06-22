@@ -55,7 +55,6 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 		block.Read(fileBuf)
 		switch fmt.Sprintf("%x", block.Type) {
 		case "0001":
-			log.Println("COLOR BLOCK")
 			color := new(Color)
 			err = color.Read(fileBuf)
 			if err != nil {
@@ -69,7 +68,6 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 			}
 			break
 		case "c001":
-			log.Println("GROUP START BLOCK")
 			//	if this is our first group entry, we need to init our groups map
 			if ase.Groups == nil {
 				ase.Groups = make(map[string][]Color)
@@ -81,7 +79,6 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 
 			break
 		case "c002":
-			log.Println("GROUP END BLOCK")
 			groupName = ""
 			break
 		default:
