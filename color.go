@@ -18,27 +18,27 @@ type Color struct {
 
 func (color *Color) Read(file *bytes.Reader) error {
 	var err error
-	err = color.ReadNameLen(file)
+	err = color.readNameLen(file)
 	if err != nil {
 		return err
 	}
 
-	err = color.ReadName(file)
+	err = color.readName(file)
 	if err != nil {
 		return err
 	}
 
-	err = color.ReadColorModel(file)
+	err = color.readColorModel(file)
 	if err != nil {
 		return err
 	}
 
-	err = color.ReadColorValues(file)
+	err = color.readColorValues(file)
 	if err != nil {
 		return err
 	}
 
-	err = color.ReadColorType(file)
+	err = color.readColorType(file)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (color *Color) Read(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) ReadNameLen(file *bytes.Reader) error {
+func (color *Color) readNameLen(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &color.NameLen)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (color *Color) ReadNameLen(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) ReadName(file *bytes.Reader) error {
+func (color *Color) readName(file *bytes.Reader) error {
 	//	make array for our color name based on block length
 	name := make([]uint16, color.NameLen)
 	err := binary.Read(file, binary.BigEndian, &name)
@@ -69,7 +69,7 @@ func (color *Color) ReadName(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) ReadColorModel(file *bytes.Reader) error {
+func (color *Color) readColorModel(file *bytes.Reader) error {
 	colorModel := make([]uint8, 4)
 	err := binary.Read(file, binary.BigEndian, colorModel)
 	if err != nil {
@@ -81,7 +81,7 @@ func (color *Color) ReadColorModel(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) ReadColorValues(file *bytes.Reader) error {
+func (color *Color) readColorValues(file *bytes.Reader) error {
 	var err error
 	switch color.Model {
 	case "RGB":
@@ -121,7 +121,7 @@ func (color *Color) ReadColorValues(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) ReadColorType(file *bytes.Reader) error {
+func (color *Color) readColorType(file *bytes.Reader) error {
 	var err error
 	colorType := make([]int16, 1)
 	err = binary.Read(file, binary.BigEndian, colorType)
