@@ -18,6 +18,15 @@ func TestBlockStruct(t *testing.T) {
 	}
 }
 
+// The main challenge here is to deconstruct
+// what is assumed in how ase is calling this.
+
+// Right now, ase uses block in the following way
+// It reads the filebuffer from bytes.NewReader(file)
+// and puts that data into the block itself
+// from ther block.Type is assigned
+// and it should also be that block has a length as well
+// how about doing a direct read for now and see where it goes?
 func TestBlockRead(t *testing.T) {
     t.SkipNow()
 }
