@@ -17,3 +17,7 @@ func TestBlockStruct(t *testing.T) {
 		t.Error("expected block to have default Type of", defaultLength)
 	}
 }
+
+func TestBlockRead(t *testing.T) {
+    t.SkipNow()
+}
