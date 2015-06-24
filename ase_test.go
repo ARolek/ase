@@ -4,7 +4,27 @@ import "testing"
 
 // Straightforward to write, come back to it later
 func TestASEStruct(t *testing.T) {
-	t.SkipNow()
+	ase := ASE{}
+	
+	var defaultSignature string
+	var defaultVersion   [2]int16
+	var defaultNumBlocks [1]int32
+	
+	if ase.Signature != defaultSignature {
+	    t.Error("expected ase to have default Signature of", defaultSignature)   
+	}
+	if ase.Version != defaultVersion {
+	    t.Error("expected ase to have default Version of", defaultVersion)   
+	}
+	if ase.NumBlocks != defaultNumBlocks {
+	    t.Error("expected ase to have default NumBlocks of", defaultNumBlocks)   
+	}
+	if ase.Colors != nil {
+	    t.Error("expected ase to have default Colors as nil")   
+	}
+	if ase.Groups != nil {
+	    t.Error("expected ase to have default Groups as nil")   
+	}
 }
 
 func TestDecode(t *testing.T) {
