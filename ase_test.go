@@ -88,4 +88,11 @@ func TestDecode(t *testing.T) {
 		t.Error("expected color type ", expectedColor.Type,
 			"got ", expectedColor.Type)
 	}
+
+	// Groups
+	// TODO: Load a test ASE that has one or more groups
+	// TODO: Write assertions checking a single element of a group
+	if len(ase.Groups) != 0 {
+		t.Error("expected zero groups, got many")
+	}
 }
