@@ -1,8 +1,6 @@
 package ase
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestBlockStruct(t *testing.T) {
 	var b Block
@@ -28,5 +26,5 @@ func TestBlockStruct(t *testing.T) {
 // and it should also be that block has a length as well
 // how about doing a direct read for now and see where it goes?
 func TestBlockRead(t *testing.T) {
-    t.SkipNow()
+	t.SkipNow()
 }
