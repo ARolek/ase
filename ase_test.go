@@ -2,7 +2,6 @@ package ase
 
 import "testing"
 
-// Straightforward to write, come back to it later
 func TestASEStruct(t *testing.T) {
 	ase := ASE{}
 	
