@@ -5,7 +5,7 @@ import "testing"
 func TestDecode(t *testing.T) {
 
 	// Load and decode the ase test file
-	filePath := "testfiles/test.ase"
+	filePath := "samples/test.ase"
 	ase := ASE{}
 	ase.Decode(filePath, false)
 
@@ -29,11 +29,11 @@ func TestDecode(t *testing.T) {
 
 	// Colors
 	expectedColor := Color{
-		NameLen: 12,
-		Name:    "PANTONE 877",
-		Model:   "CMYK",
-		Values:  []float32{0.22, 0.17, 0.13, 0.4},
-		Type:    "Spot",
+		NameLen: 4,
+		Name:    "RGB",
+		Model:   "RGB",
+		Values:  []float32{1, 1, 1},
+		Type:    "Normal",
 	}
 
 	firstColor := ase.Colors[0]
@@ -62,13 +62,7 @@ func TestDecode(t *testing.T) {
 
 	if firstColor.Type != expectedColor.Type {
 		t.Error("expected color type ", expectedColor.Type,
-			"got ", expectedColor.Type)
+			"got ", firstColor.Type)
 	}
 
-	// Groups
-	// TODO: Load a test ASE that has one or more groups
-	// TODO: Write assertions checking a single element of a group
-	if len(ase.Groups) != 0 {
-		t.Error("expected zero groups, got many")
-	}
 }
