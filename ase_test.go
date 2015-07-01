@@ -39,14 +39,14 @@ func TestDecode(t *testing.T) {
 			NameLen: 10,
 			Name:    "Grayscale",
 			Model:   "CMYK",
-			Values:  []float32{0, 0, 0},
+			Values:  []float32{0, 0, 0, 0.47},
 			Type:    "Spot",
 		},
 		Color{
 			NameLen: 5,
 			Name:    "cmyk",
 			Model:   "CMYK",
-			Values:  []float32{0, 1, 0},
+			Values:  []float32{0, 1, 0, 0},
 			Type:    "Spot",
 		},
 		Color{
