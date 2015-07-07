@@ -8,17 +8,6 @@ func TestDecode(t *testing.T) {
 	ase := ASE{}
 	ase.Decode(filePath, false)
 
-	expectedSignature := "ASEF"
-	if ase.Signature != expectedSignature {
-		t.Error("expected signature of ASEF, got ", ase.Signature)
-	}
-
-	expectedVersion := [2]int16{1, 0}
-	if ase.Version != expectedVersion {
-		t.Error("expected version of ", expectedSignature,
-			" got ", ase.Signature)
-	}
-
 	expectedNumBlocks := [1]int32{10}
 	if ase.NumBlocks != expectedNumBlocks {
 		t.Error("expected NumBlocks of ", expectedNumBlocks,
@@ -140,17 +129,6 @@ func TestDecodeWithGroup(t *testing.T) {
 	filePath := "samples/test.ase"
 	ase := ASE{}
 	ase.Decode(filePath, true)
-
-	expectedSignature := "ASEF"
-	if ase.Signature != expectedSignature {
-		t.Error("expected signature of ASEF, got ", ase.Signature)
-	}
-
-	expectedVersion := [2]int16{1, 0}
-	if ase.Version != expectedVersion {
-		t.Error("expected version of ", expectedSignature,
-			" got ", ase.Signature)
-	}
 
 	expectedNumBlocks := [1]int32{10}
 	if ase.NumBlocks != expectedNumBlocks {
