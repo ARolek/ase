@@ -12,18 +12,16 @@ import (
 //	ASE File Spec http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase
 
 type ASE struct {
-	Signature string
-	Version   [2]int16
 	NumBlocks [1]int32
 	Colors    []Color
 	Groups    map[string][]Color
 }
 
-//	pass in the path to the ASE file to read and wheater or not to group
-//	if group is set to false, colors in groups will be listed the same way
-//	as colors outside of groups.
-//	if group is set to true, colors will be nested in a group as named in the
-//	ASE file
+
+// Decode processes an encoded ASE file into an ASE struct.
+// Setting the `group` option to:
+// (true) nests colors in their appropriate group as named in the ASE file
+// (false) pools group colors into the Colors struct.
 func (ase *ASE) Decode(aseFile string, group bool) error {
 	var err error
 	file, err := ioutil.ReadFile(aseFile)
@@ -89,8 +87,8 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 	return nil
 }
 
-//	ASE Files start are signed with ASEF at the beginning of the file
-//	let's make sure this is an ASE file
+// readSignature ensures that the file being read has the appropriate ASE file
+// signature of ASEF.
 func (ase *ASE) readSignature(file *bytes.Reader) error {
 	signature := make([]uint8, 4)
 
@@ -99,25 +97,35 @@ func (ase *ASE) readSignature(file *bytes.Reader) error {
 		return err
 	}
 
-	ase.Signature = string(signature[0:])
-	if ase.Signature != "ASEF" {
-		return errors.New("File not an ASE file")
+	expectedSignature := "ASEF"
+	if string(signature[0:]) != expectedSignature {
+		return errors.New("File not an ASE file: expected signature of " + expectedSignature)
 	}
 
 	return nil
 }
 
-//	ASE version. Should be 1.0
+// readVersion ensures that the file being read has the appropriate ASE version
+// of 1.0.
 func (ase *ASE) readVersion(file *bytes.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &ase.Version)
+	version := make([]int16, 2)
+
+	err := binary.Read(file, binary.BigEndian, &version)
 	if err != nil {
 		return err
 	}
 
+	for i, v := range version {
+		expectedVersion := [2]int16{1, 0}
+		if expectedVersion[i] != v {
+			return errors.New("File not an ASE file")
+		}
+	}
+
 	return nil
 }
 
-//	Total number of blocks in the ASE file
+//	readNumBlock stores the total number of blocks in the ASE file.
 func (ase *ASE) readNumBlock(file *bytes.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &ase.NumBlocks)
 	if err != nil {
