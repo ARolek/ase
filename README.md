@@ -25,14 +25,19 @@ import (
 )
 
 func main() {
-	filePath := "/path/to/test.ase"
-
-	aseDecoder := ase.ASE{}
-	if err := aseDecoder.Decode(filePath, false); err != nil {
+	//	open the file
+	f, err := os.Open("/path/to/test.ase")
+	if err != nil {
 		log.Println(err)
 	}
 
-	log.Printf("%+v\n", aseDecoder)
+	//	decode can take in any io.Reader
+	ase, err := ase.Decode(f, false)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Printf("%+v\n", ase)
 }
 
 ```
