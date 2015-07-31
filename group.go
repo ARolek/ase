@@ -1,8 +1,8 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
+	"io"
 	"unicode/utf16"
 )
 
@@ -12,7 +12,7 @@ type Group struct {
 	Colors  []Color
 }
 
-func (group *Group) Read(file *bytes.Reader) error {
+func (group *Group) Read(file io.Reader) error {
 	var err error
 	err = group.readNameLen(file)
 	if err != nil {
@@ -27,7 +27,7 @@ func (group *Group) Read(file *bytes.Reader) error {
 	return nil
 }
 
-func (group *Group) readNameLen(file *bytes.Reader) error {
+func (group *Group) readNameLen(file io.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &group.NameLen)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (group *Group) readNameLen(file *bytes.Reader) error {
 	return nil
 }
 
-func (group *Group) readName(file *bytes.Reader) error {
+func (group *Group) readName(file io.Reader) error {
 	//	make array for our color name based on block length
 	name := make([]uint16, group.NameLen)
 	err := binary.Read(file, binary.BigEndian, &name)

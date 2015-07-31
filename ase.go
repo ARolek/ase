@@ -1,64 +1,52 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
+	"os"
+)
+
+var (
+	ErrInvalidFile = errors.New("ase: file not an ASE file")
 )
 
 //	ASE File Spec http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase
-
-type ASE struct {
-	Signature string
-	Version   [2]int16
-	NumBlocks [1]int32
-	Colors    []Color
-	Groups    map[string][]Color
-}
 
 //	pass in the path to the ASE file to read and wheater or not to group
 //	if group is set to false, colors in groups will be listed the same way
 //	as colors outside of groups.
 //	if group is set to true, colors will be nested in a group as named in the
 //	ASE file
-func (ase *ASE) Decode(aseFile string, group bool) error {
-	var err error
-	file, err := ioutil.ReadFile(aseFile)
-	if err != nil {
-		return err
+func Decode(reader io.Reader, group bool) (ase ASE, err error) {
+
+	//	signature
+	if err = ase.readSignature(reader); err != nil {
+		return
 	}
 
-	fileBuf := bytes.NewReader(file)
-
-	err = ase.readSignature(fileBuf)
-	if err != nil {
-		return err
+	//	file version
+	if err = ase.readVersion(reader); err != nil {
+		return
 	}
 
-	err = ase.readVersion(fileBuf)
-	if err != nil {
-		return err
-	}
-
-	err = ase.readNumBlock(fileBuf)
-	if err != nil {
-		return err
+	//	block count
+	if err = ase.readNumBlock(reader); err != nil {
+		return
 	}
 
 	groupName := ""
 	//	itereate based on our block count
 	for i := 0; i < int(ase.NumBlocks[0]); i++ {
 		block := new(Block)
-		block.Read(fileBuf)
+		block.Read(reader)
 		switch fmt.Sprintf("%x", block.Type) {
 		case "0001":
 			color := new(Color)
-			err = color.Read(fileBuf)
-			if err != nil {
-				return err
+			if err = color.Read(reader); err != nil {
+				return
 			}
 
 			if groupName != "" && group == true {
@@ -74,7 +62,7 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 			}
 
 			group := new(Group)
-			group.Read(fileBuf)
+			group.Read(reader)
 			groupName = group.Name
 
 			break
@@ -82,47 +70,56 @@ func (ase *ASE) Decode(aseFile string, group bool) error {
 			groupName = ""
 			break
 		default:
-			log.Println("INVALID BLOCK TYPE")
+			log.Println("invalid block type")
 		}
 	}
 
-	return nil
+	return
+}
+
+//	read a file on a file system
+func DecodeFile(file string, group bool) (ase ASE, err error) {
+	//	open the file
+	f, err := os.Open(testFile)
+	if err != nil {
+		return
+	}
+
+	//	decode the file
+	return Decode(f, group)
+}
+
+type ASE struct {
+	Signature string
+	Version   [2]int16
+	NumBlocks [1]int32
+	Colors    []Color
+	Groups    map[string][]Color
 }
 
 //	ASE Files start are signed with ASEF at the beginning of the file
 //	let's make sure this is an ASE file
-func (ase *ASE) readSignature(file *bytes.Reader) error {
+func (ase *ASE) readSignature(file io.Reader) (err error) {
 	signature := make([]uint8, 4)
 
-	err := binary.Read(file, binary.BigEndian, &signature)
-	if err != nil {
-		return err
+	if err = binary.Read(file, binary.BigEndian, &signature); err != nil {
+		return
 	}
 
 	ase.Signature = string(signature[0:])
 	if ase.Signature != "ASEF" {
-		return errors.New("File not an ASE file")
+		return ErrInvalidFile
 	}
 
-	return nil
+	return
 }
 
 //	ASE version. Should be 1.0
-func (ase *ASE) readVersion(file *bytes.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &ase.Version)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (ase *ASE) readVersion(file io.Reader) error {
+	return binary.Read(file, binary.BigEndian, &ase.Version)
 }
 
 //	Total number of blocks in the ASE file
-func (ase *ASE) readNumBlock(file *bytes.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &ase.NumBlocks)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (ase *ASE) readNumBlock(file io.Reader) error {
+	return binary.Read(file, binary.BigEndian, &ase.NumBlocks)
 }

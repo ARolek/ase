@@ -1,9 +1,9 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
+	"io"
 	"strings"
 	"unicode/utf16"
 )
@@ -16,7 +16,7 @@ type Color struct {
 	Type    string
 }
 
-func (color *Color) Read(file *bytes.Reader) error {
+func (color *Color) Read(file io.Reader) error {
 	var err error
 	err = color.readNameLen(file)
 	if err != nil {
@@ -46,7 +46,7 @@ func (color *Color) Read(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) readNameLen(file *bytes.Reader) error {
+func (color *Color) readNameLen(file io.Reader) error {
 	err := binary.Read(file, binary.BigEndian, &color.NameLen)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (color *Color) readNameLen(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) readName(file *bytes.Reader) error {
+func (color *Color) readName(file io.Reader) error {
 	//	make array for our color name based on block length
 	name := make([]uint16, color.NameLen)
 	err := binary.Read(file, binary.BigEndian, &name)
@@ -69,7 +69,7 @@ func (color *Color) readName(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) readColorModel(file *bytes.Reader) error {
+func (color *Color) readColorModel(file io.Reader) error {
 	colorModel := make([]uint8, 4)
 	err := binary.Read(file, binary.BigEndian, colorModel)
 	if err != nil {
@@ -81,7 +81,7 @@ func (color *Color) readColorModel(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) readColorValues(file *bytes.Reader) error {
+func (color *Color) readColorValues(file io.Reader) error {
 	var err error
 	switch color.Model {
 	case "RGB":
@@ -121,7 +121,7 @@ func (color *Color) readColorValues(file *bytes.Reader) error {
 	return nil
 }
 
-func (color *Color) readColorType(file *bytes.Reader) error {
+func (color *Color) readColorType(file io.Reader) error {
 	var err error
 	colorType := make([]int16, 1)
 	err = binary.Read(file, binary.BigEndian, colorType)

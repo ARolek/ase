@@ -1,8 +1,8 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
+	"io"
 )
 
 type Block struct {
@@ -10,38 +10,28 @@ type Block struct {
 	Length [1]int32
 }
 
-func (block *Block) Read(file *bytes.Reader) error {
-	var err error
-	err = block.readType(file)
-	if err != nil {
-		return err
+func (block *Block) Read(file io.Reader) (err error) {
+
+	//	type
+	if err = block.readType(file); err != nil {
+		return
 	}
 
-	err = block.readLength(file)
-	if err != nil {
-		return err
+	//	block length
+	if err = block.readLength(file); err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
 //	0xc001 ⇒ Group start
 //	0xc002 ⇒ Group end
 //	0x0001 ⇒ Color entry
-func (block *Block) readType(file *bytes.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &block.Type)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (block *Block) readType(file io.Reader) error {
+	return binary.Read(file, binary.BigEndian, &block.Type)
 }
 
-func (block *Block) readLength(file *bytes.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &block.Length)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (block *Block) readLength(file io.Reader) error {
+	return binary.Read(file, binary.BigEndian, &block.Length)
 }
