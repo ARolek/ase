@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-const testFile = "testfiles/test.ase"
-
 func TestDecode(t *testing.T) {
+	testFile := "testfiles/test.ase"
+
 	//	open our test file
 	f, err := os.Open(testFile)
 	if err != nil {
@@ -16,7 +16,7 @@ func TestDecode(t *testing.T) {
 	}
 
 	//	test our decode
-	ase, err := Decode(f, false)
+	ase, err := Decode(f)
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,11 +26,26 @@ func TestDecode(t *testing.T) {
 }
 
 func TestDecodeFile(t *testing.T) {
-	ase, err := DecodeFile(testFile, false)
+	testFile := "testfiles/test.ase"
+
+	ase, err := DecodeFile(testFile)
 	if err != nil {
 		t.Error(err)
 	}
 
 	//	log our output
 	log.Printf("%+v\n", ase)
+}
+
+func TestSignature(t *testing.T) {
+	testFile := "testfiles/test.ase"
+
+	ase, err := DecodeFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ase.Signature() != "ASEF" {
+		t.Error("file signature is invalid")
+	}
 }

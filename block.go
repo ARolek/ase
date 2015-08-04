@@ -2,23 +2,34 @@ package ase
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 )
 
-type Block struct {
-	Type   [2]uint8
-	Length [1]int32
+var (
+	ErrInvalidBlockType = errors.New("ase: invalid block type")
+)
+
+type block struct {
+	Type   uint16
+	Length int32
 }
 
-func (block *Block) Read(file io.Reader) (err error) {
+const (
+	groupStart = uint16(0xc001)
+	groupEnd   = uint16(0xc002)
+	color      = uint16(0x0001)
+)
+
+func (b *block) Read(r io.Reader) (err error) {
 
 	//	type
-	if err = block.readType(file); err != nil {
+	if err = b.readType(r); err != nil {
 		return
 	}
 
 	//	block length
-	if err = block.readLength(file); err != nil {
+	if err = b.readLength(r); err != nil {
 		return
 	}
 
@@ -28,10 +39,10 @@ func (block *Block) Read(file io.Reader) (err error) {
 //	0xc001 ⇒ Group start
 //	0xc002 ⇒ Group end
 //	0x0001 ⇒ Color entry
-func (block *Block) readType(file io.Reader) error {
-	return binary.Read(file, binary.BigEndian, &block.Type)
+func (block *block) readType(r io.Reader) error {
+	return binary.Read(r, binary.BigEndian, &block.Type)
 }
 
-func (block *Block) readLength(file io.Reader) error {
-	return binary.Read(file, binary.BigEndian, &block.Length)
+func (block *block) readLength(r io.Reader) error {
+	return binary.Read(r, binary.BigEndian, &block.Length)
 }

@@ -8,125 +8,120 @@ import (
 	"unicode/utf16"
 )
 
+var (
+	ErrInvalidColorType = errors.New("ase: invalid color type")
+)
+
 type Color struct {
-	NameLen uint16
+	nameLen uint16
 	Name    string
-	Model   string
+	Model   string // CMYK, RGB, LAB or Gray
 	Values  []float32
-	Type    string
+	Type    string //	Global, Spot, Normal
 }
 
-func (color *Color) Read(file io.Reader) error {
-	var err error
-	err = color.readNameLen(file)
-	if err != nil {
-		return err
+func (color *Color) read(r io.Reader) (err error) {
+
+	if err = color.readNameLen(r); err != nil {
+		return
 	}
 
-	err = color.readName(file)
-	if err != nil {
-		return err
+	if err = color.readName(r); err != nil {
+		return
 	}
 
-	err = color.readColorModel(file)
-	if err != nil {
-		return err
+	if err = color.readColorModel(r); err != nil {
+		return
 	}
 
-	err = color.readColorValues(file)
-	if err != nil {
-		return err
+	if err = color.readColorValues(r); err != nil {
+		return
 	}
 
-	err = color.readColorType(file)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return color.readColorType(r)
 }
 
-func (color *Color) readNameLen(file io.Reader) error {
-	err := binary.Read(file, binary.BigEndian, &color.NameLen)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (color *Color) readNameLen(r io.Reader) error {
+	return binary.Read(r, binary.BigEndian, &color.nameLen)
 }
 
-func (color *Color) readName(file io.Reader) error {
+func (color *Color) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
-	name := make([]uint16, color.NameLen)
-	err := binary.Read(file, binary.BigEndian, &name)
-	if err != nil {
-		return err
+	name := make([]uint16, color.nameLen)
+	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
+		return
 	}
 
 	//	decode our name. we trim off the last byte since it's zero terminated
 	color.Name = string(utf16.Decode(name[:len(name)-1]))
 
-	return nil
+	return
 }
 
-func (color *Color) readColorModel(file io.Reader) error {
+func (color *Color) readColorModel(r io.Reader) (err error) {
 	colorModel := make([]uint8, 4)
-	err := binary.Read(file, binary.BigEndian, colorModel)
-	if err != nil {
-		return err
+	if err = binary.Read(r, binary.BigEndian, colorModel); err != nil {
+		return
 	}
 
 	color.Model = strings.TrimSpace(string(colorModel[0:]))
 
-	return nil
+	return
 }
 
-func (color *Color) readColorValues(file io.Reader) error {
-	var err error
+func (color *Color) readColorValues(r io.Reader) (err error) {
 	switch color.Model {
 	case "RGB":
 		rgb := make([]float32, 3)
-		err = binary.Read(file, binary.BigEndian, &rgb)
-		if err != nil {
-			return err
+
+		//	read into rbg array
+		if err = binary.Read(r, binary.BigEndian, &rgb); err != nil {
+			return
 		}
 		color.Values = rgb
 		break
 	case "LAB":
 		lab := make([]float32, 3)
-		err = binary.Read(file, binary.BigEndian, &lab)
-		if err != nil {
-			return err
+
+		//	read into lab array
+		if err = binary.Read(r, binary.BigEndian, &lab); err != nil {
+			return
 		}
+
 		color.Values = lab
 		break
 	case "CMYK":
 		cmyk := make([]float32, 4)
-		err = binary.Read(file, binary.BigEndian, &cmyk)
-		if err != nil {
-			return err
+
+		//	read into cmyk array
+		if err = binary.Read(r, binary.BigEndian, &cmyk); err != nil {
+			return
 		}
+
 		color.Values = cmyk
 		break
 	case "Gray":
 		gray := make([]float32, 1)
-		err = binary.Read(file, binary.BigEndian, &gray)
-		if err != nil {
-			return err
+
+		//	read into gray array
+		if err = binary.Read(r, binary.BigEndian, &gray); err != nil {
+			return
 		}
+
 		color.Values = gray
 		break
 	}
 
-	return nil
+	return
 }
 
-func (color *Color) readColorType(file io.Reader) error {
-	var err error
+func (color *Color) readColorType(r io.Reader) (err error) {
+
 	colorType := make([]int16, 1)
-	err = binary.Read(file, binary.BigEndian, colorType)
-	if err != nil {
-		return err
+
+	//	read into colorType array
+	if err = binary.Read(r, binary.BigEndian, colorType); err != nil {
+		return
 	}
 
 	switch colorType[0] {
@@ -140,8 +135,8 @@ func (color *Color) readColorType(file io.Reader) error {
 		color.Type = "Normal"
 		break
 	default:
-		return errors.New("invalid color type")
+		return ErrInvalidColorType
 	}
 
-	return nil
+	return
 }
