@@ -13,7 +13,7 @@ Note: this was one of my first projects in Go as well as with binary decoding. I
 
 # Getting started
 
-the ase package exposes a Decode method. You simply create a new ASE struct and pass a string to the Decode method of a local file location. For example:
+the ASE package exposes a Decode method. You simply pass an io.Reader interface to ase.Decode and it will return an ASE struct of the decoded data. For example:
 
 ```go
 package main
