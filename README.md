@@ -32,7 +32,7 @@ func main() {
 	}
 
 	//	decode can take in any io.Reader
-	ase, err := ase.Decode(f, false)
+	ase, err := ase.Decode(f)
 	if err != nil {
 		log.Println(err)
 	}
