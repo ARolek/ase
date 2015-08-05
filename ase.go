@@ -1,14 +1,17 @@
 package ase
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
 	"os"
+	"strconv"
 )
 
 var (
-	ErrInvalidFile = errors.New("ase: file not an ASE file")
+	ErrInvalidFile    = errors.New("ase: file not an ASE file")
+	ErrInvalidVersion = errors.New("ase: version is not 1.0")
 )
 
 //	ASE File Spec http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase
@@ -83,7 +86,7 @@ func Decode(r io.Reader) (ase ASE, err error) {
 	return
 }
 
-//	read a file on a file system
+//	Helper function that decodes a file into an ASE.
 func DecodeFile(file string) (ase ASE, err error) {
 	//	open the file
 	f, err := os.Open(file)
@@ -95,18 +98,20 @@ func DecodeFile(file string) (ase ASE, err error) {
 	return Decode(f)
 }
 
-//	TODO: complete encode method
+// Encodes an ASE into any `w` that satisfies the io.Writer interface.
 func Encode(ase ASE, w io.Writer) (err error) {
 
 	//	write signature
+	w.Write(writeSignature())
 
 	//	write version
+	w.Write(writeVersion())
 
 	//	write number of blocks
 
 	//	write details of each block
 
-	return
+	return nil
 }
 
 type ASE struct {
@@ -117,15 +122,13 @@ type ASE struct {
 	Groups    []Group
 }
 
-//	ASE Files start are signed with ASEF at the beginning of the file
-//	let's make sure this is an ASE file
 func (ase *ASE) readSignature(r io.Reader) (err error) {
-	//	read the signature
+	//	Read the signature
 	if err = binary.Read(r, binary.BigEndian, &ase.signature); err != nil {
 		return
 	}
 
-	//	check our file signature
+	//	Checks signature is `ASEF`
 	if string(ase.signature[0:]) != "ASEF" {
 		return ErrInvalidFile
 	}
@@ -133,17 +136,45 @@ func (ase *ASE) readSignature(r io.Reader) (err error) {
 	return
 }
 
-//	ASE version. Should be 1.0
-func (ase *ASE) readVersion(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, &ase.version)
+//	Reads the version of the ASE file.
+func (ase *ASE) readVersion(r io.Reader) (err error) {
+	// Read the version
+	if err = binary.Read(r, binary.BigEndian, &ase.version); err != nil {
+		return
+	}
+
+	// Checks version is 1.0
+	if ase.version[0] != 1 && ase.version[1] != 0 {
+		return ErrInvalidVersion
+	}
+
+	return
 }
 
-//	Total number of blocks in the ASE file
+//	Reads the total number of blocks in the ASE file
 func (ase *ASE) readNumBlock(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &ase.numBlocks)
 }
 
-//	returns the file signature in human readable format
+// Returns the ASE signature as a slice of bytes.
+func writeSignature() []byte {
+	return []byte("ASEF")
+}
+
+// Returns the ASE version as of slice of bytes.
+func writeVersion() []byte {
+	b := new(bytes.Buffer)
+	version := [2]int16{1, 0}
+	binary.Write(b, binary.BigEndian, version)
+	return b.Bytes()
+}
+
+//	Returns the file signature in a human readable format.
 func (ase *ASE) Signature() string {
 	return string(ase.signature[0:])
+}
+
+// Returns the file version in a human readable format.
+func (ase *ASE) Version() string {
+	return strconv.Itoa(int(ase.version[0])) + "." + strconv.Itoa(int(ase.version[1]))
 }
