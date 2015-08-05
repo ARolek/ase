@@ -7,6 +7,57 @@ import (
 	"testing"
 )
 
+var testColors = []Color{
+	Color{
+		Name:   "RGB",
+		Model:  "RGB",
+		Values: []float32{1, 1, 1},
+		Type:   "Normal",
+	},
+	Color{
+		Name:   "Grayscale",
+		Model:  "CMYK",
+		Values: []float32{0, 0, 0, 0.47},
+		Type:   "Spot",
+	},
+	Color{
+		Name:   "cmyk",
+		Model:  "CMYK",
+		Values: []float32{0, 1, 0, 0},
+		Type:   "Spot",
+	},
+	Color{
+		Name:   "LAB",
+		Model:  "RGB",
+		Values: []float32{0, 0.6063648, 0.524658},
+		Type:   "Global",
+	},
+	Color{
+		Name:   "PANTONE P 1-8 C",
+		Model:  "LAB",
+		Values: []float32{0.9137255, -5, 94},
+		Type:   "Spot",
+	},
+	Color{
+		Name:   "Red",
+		Model:  "RGB",
+		Values: []float32{1, 0, 0},
+		Type:   "Global",
+	},
+	Color{
+		Name:   "Green",
+		Model:  "RGB",
+		Values: []float32{0, 1, 0},
+		Type:   "Global",
+	},
+	Color{
+		Name:   "Blue",
+		Model:  "RGB",
+		Values: []float32{0, 0, 1},
+		Type:   "Global",
+	},
+}
+
 func TestDecode(t *testing.T) {
 	testFile := "testfiles/test.ase"
 
@@ -68,6 +119,7 @@ func TestEncode(t *testing.T) {
 
 	// Initialize a sample ASE
 	sampleAse := ASE{}
+	sampleAse.Colors = testColors
 
 	// Encode the sampleAse into the buffer and immediately decode it.
 	b := new(bytes.Buffer)
@@ -82,4 +134,9 @@ func TestEncode(t *testing.T) {
 	if ase.version[0] != 1 && ase.version[1] != 0 {
 		t.Error("ase: version is not 1.0")
 	}
+
+	if ase.numBlocks != 8 {
+		t.Error("ase: expected 8 blocks to be present")
+	}
+
 }

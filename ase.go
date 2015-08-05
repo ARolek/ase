@@ -14,6 +14,14 @@ var (
 	ErrInvalidVersion = errors.New("ase: version is not 1.0")
 )
 
+type ASE struct {
+	signature [4]uint8
+	version   [2]int16
+	numBlocks int32
+	Colors    []Color
+	Groups    []Group
+}
+
 //	ASE File Spec http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase
 
 //	Decode a valid ASE input
@@ -107,19 +115,12 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	//	write version
 	w.Write(writeVersion())
 
-	//	write number of blocks
+	// write number of blocks
+	w.Write(ase.writeNumBlocks())
 
 	//	write details of each block
 
 	return nil
-}
-
-type ASE struct {
-	signature [4]uint8
-	version   [2]int16
-	numBlocks int32
-	Colors    []Color
-	Groups    []Group
 }
 
 func (ase *ASE) readSignature(r io.Reader) (err error) {
@@ -166,6 +167,30 @@ func writeVersion() []byte {
 	b := new(bytes.Buffer)
 	version := [2]int16{1, 0}
 	binary.Write(b, binary.BigEndian, version)
+	return b.Bytes()
+}
+
+// Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
+// There is currently no mechanism in place to update numBlocks if
+// a user adds or removes either colors, groups, or colors within groups
+func (ase *ASE) writeNumBlocks() []byte {
+	// A color has only one block.
+	colorBlocks := len(ase.Colors)
+
+	// A single group has a start block and an end block.
+	groupBlocks := len(ase.Groups) * 2
+
+	// Run a comprehension counting every color inside groups.
+	if groupBlocks != 0 {
+		for _, group := range ase.Groups {
+			colorBlocks += len(group.Colors)
+		}
+	}
+
+	// Write blocks to a slice of bytes.
+	blocks := int32(colorBlocks + groupBlocks)
+	b := new(bytes.Buffer)
+	binary.Write(b, binary.BigEndian, blocks)
 	return b.Bytes()
 }
 
