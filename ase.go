@@ -1,7 +1,6 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -110,13 +109,19 @@ func DecodeFile(file string) (ase ASE, err error) {
 func Encode(ase ASE, w io.Writer) (err error) {
 
 	//	write signature
-	w.Write(writeSignature())
+	if err = ase.writeSignature(w); err != nil {
+		return err
+	}
 
 	//	write version
-	w.Write(writeVersion())
+	if err = ase.writeVersion(w); err != nil {
+		return err
+	}
 
 	// write number of blocks
-	w.Write(ase.writeNumBlocks())
+	if err = ase.writeNumBlocks(w); err != nil {
+		return err
+	}
 
 	// Write the details for colors
 	w.Write(ase.writeColors())
@@ -185,22 +190,21 @@ func (ase *ASE) readNumBlock(r io.Reader) error {
 }
 
 // Returns the ASE signature as a slice of bytes.
-func writeSignature() []byte {
-	return []byte("ASEF")
+func (ase *ASE) writeSignature(w io.Writer) (err error) {
+	signature := []byte("ASEF")
+	return binary.Write(w, binary.BigEndian, signature)
 }
 
 // Returns the ASE version as of slice of bytes.
-func writeVersion() []byte {
-	b := new(bytes.Buffer)
+func (ase *ASE) writeVersion(w io.Writer) (err error) {
 	version := [2]int16{1, 0}
-	binary.Write(b, binary.BigEndian, version)
-	return b.Bytes()
+	return binary.Write(w, binary.BigEndian, version)
 }
 
 // Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
 // There is currently no mechanism in place to update numBlocks if
 // a user adds or removes either colors, groups, or colors within groups
-func (ase *ASE) writeNumBlocks() []byte {
+func (ase *ASE) writeNumBlocks(w io.Writer) (err error) {
 	// A color has only one block.
 	colorBlocks := len(ase.Colors)
 
@@ -214,11 +218,9 @@ func (ase *ASE) writeNumBlocks() []byte {
 		}
 	}
 
-	// Write blocks to a slice of bytes.
+	// Write blocks
 	blocks := int32(colorBlocks + groupBlocks)
-	b := new(bytes.Buffer)
-	binary.Write(b, binary.BigEndian, blocks)
-	return b.Bytes()
+	return binary.Write(w, binary.BigEndian, blocks)
 }
 
 //	Returns the file signature in a human readable format.
