@@ -140,3 +140,23 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 
 	return
 }
+
+// Calculate the lenght of a color's name.
+func (color *Color) NameLen() string {
+	return len(color.Name)	
+}
+
+// Return the integer version of the color type.
+// TODO: Add the Gray key-val pair
+func (color *Color) ColorTypeInt int {
+	colorTypes := map[string]int{
+		"Global": 0,
+		"Spot":   1,
+		"Normal": 2,
+	}
+	colorTypeInt, ok := colorTypes[color.Type]
+	if !ok {
+		return 0	
+	}
+	return colorTypeInt
+}
