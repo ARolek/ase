@@ -1,7 +1,6 @@
 package ase
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -110,10 +109,10 @@ func DecodeFile(file string) (ase ASE, err error) {
 func Encode(ase ASE, w io.Writer) (err error) {
 
 	//	write signature
-	w.Write(writeSignature())
+	ase.writeSignature(w)
 
 	//	write version
-	w.Write(writeVersion())
+	ase.writeVersion(w)
 
 	// write number of blocks
 	ase.writeNumBlocks(w)
@@ -158,16 +157,15 @@ func (ase *ASE) readNumBlock(r io.Reader) error {
 }
 
 // Returns the ASE signature as a slice of bytes.
-func writeSignature() []byte {
-	return []byte("ASEF")
+func (ase *ASE) writeSignature(w io.Writer) (err error) {
+	signature := []byte("ASEF")
+	return binary.Write(w, binary.BigEndian, signature)
 }
 
 // Returns the ASE version as of slice of bytes.
-func writeVersion() []byte {
-	b := new(bytes.Buffer)
+func (ase *ASE) writeVersion(w io.Writer) (err error) {
 	version := [2]int16{1, 0}
-	binary.Write(b, binary.BigEndian, version)
-	return b.Bytes()
+	return binary.Write(w, binary.BigEndian, version)
 }
 
 // Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
