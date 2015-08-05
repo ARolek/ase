@@ -109,13 +109,19 @@ func DecodeFile(file string) (ase ASE, err error) {
 func Encode(ase ASE, w io.Writer) (err error) {
 
 	//	write signature
-	ase.writeSignature(w)
+	if err = ase.writeSignature(w); err != nil {
+		return err
+	}
 
 	//	write version
-	ase.writeVersion(w)
+	if err = ase.writeVersion(w); err != nil {
+		return err
+	}
 
 	// write number of blocks
-	ase.writeNumBlocks(w)
+	if err = ase.writeNumBlocks(w); err != nil {
+		return err
+	}
 
 	//	write details of each block
 
