@@ -116,7 +116,7 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	w.Write(writeVersion())
 
 	// write number of blocks
-	w.Write(ase.writeNumBlocks())
+	ase.writeNumBlocks(w)
 
 	//	write details of each block
 
@@ -173,7 +173,7 @@ func writeVersion() []byte {
 // Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
 // There is currently no mechanism in place to update numBlocks if
 // a user adds or removes either colors, groups, or colors within groups
-func (ase *ASE) writeNumBlocks() []byte {
+func (ase *ASE) writeNumBlocks(w io.Writer) (err error) {
 	// A color has only one block.
 	colorBlocks := len(ase.Colors)
 
@@ -187,11 +187,9 @@ func (ase *ASE) writeNumBlocks() []byte {
 		}
 	}
 
-	// Write blocks to a slice of bytes.
+	// Write blocks
 	blocks := int32(colorBlocks + groupBlocks)
-	b := new(bytes.Buffer)
-	binary.Write(b, binary.BigEndian, blocks)
-	return b.Bytes()
+	return binary.Write(w, binary.BigEndian, blocks)
 }
 
 //	Returns the file signature in a human readable format.
