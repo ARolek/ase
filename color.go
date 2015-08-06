@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrInvalidColorType = errors.New("ase: invalid color type")
+	ErrInvalidColorValue = errors.New("ase: invalid color value")
 )
 
 type Color struct {
@@ -41,9 +42,44 @@ func (color *Color) read(r io.Reader) (err error) {
 	return color.readColorType(r)
 }
 
+func (color *Color) write(w io.Writer) (err error) {
+
+	if err = color.writeBlockHeader(w); err != nil {
+		return
+	}
+
+	if err = color.writeNameLen(w); err != nil {
+		return
+	}
+
+	if err = color.writeName(w); err != nil {
+		return
+	}
+
+	if err = color.writeModel(w); err != nil {
+		return
+	}
+
+	if err = color.writeValues(w); err != nil {
+		return
+	}
+
+	if err = color.writeType(w); err != nil {
+		return
+	}
+
+	return
+}
+
 func (color *Color) readNameLen(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &color.nameLen)
 }
+
+// Write color's nameLen
+func (color *Color) writeNameLen(w io.Writer) (err error) {
+	return binary.Write(w, binary.BigEndian, color.NameLen())
+}
+
 
 func (color *Color) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
@@ -53,9 +89,17 @@ func (color *Color) readName(r io.Reader) (err error) {
 	}
 
 	//	decode our name. we trim off the last byte since it's zero terminated
+	// utf16.Decode returns a slice of runes from an input of []uint16
 	color.Name = string(utf16.Decode(name[:len(name)-1]))
 
 	return
+}
+
+// TODO: Encode the color's name as a slice of uint16.
+// How can I go from string to a slice of uint16?
+func (color *Color) writeName(w io.Writer) (err error) {
+	name := []byte(color.Name)
+	return binary.Write(w, binary.BigEndian, name)
 }
 
 func (color *Color) readColorModel(r io.Reader) (err error) {
@@ -67,6 +111,12 @@ func (color *Color) readColorModel(r io.Reader) (err error) {
 	color.Model = strings.TrimSpace(string(colorModel[0:]))
 
 	return
+}
+
+// TODO: Write color's model
+// How can I go from a string to a slice of uint8?
+func (color *Color) writeModel(w io.Writer) (err error) {
+	return binary.Write(w, binary.BigEndian, color.Model)
 }
 
 func (color *Color) readColorValues(r io.Reader) (err error) {
@@ -110,10 +160,18 @@ func (color *Color) readColorValues(r io.Reader) (err error) {
 
 		color.Values = gray
 		break
+	default:
+		return ErrInvalidColorValue
 	}
 
 	return
 }
+
+// TODO: Write color's values
+func (color *Color) writeValues(w io.Writer) (err error) {
+	return binary.Write(w, binary.BigEndian, color.Values)
+}
+
 
 func (color *Color) readColorType(r io.Reader) (err error) {
 
@@ -141,22 +199,34 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 	return
 }
 
-// Calculate the lenght of a color's name.
-func (color *Color) NameLen() string {
-	return len(color.Name)	
+// Encode the color's type.
+func (color *Color) writeType(w io.Writer) (err error) {
+
+	var colorType int16
+
+	switch color.Type {
+	case "Global":
+		colorType = 0
+		break
+	case "Spot":
+		colorType = 1
+		break
+	case "Normal":
+		colorType = 2
+		break
+	default:
+		return ErrInvalidColorType
+	}
+
+	return binary.Write(w, binary.BigEndian, []int16{colorType})
 }
 
-// Return the integer version of the color type.
-// TODO: Add the Gray key-val pair
-func (color *Color) ColorTypeInt int {
-	colorTypes := map[string]int{
-		"Global": 0,
-		"Spot":   1,
-		"Normal": 2,
-	}
-	colorTypeInt, ok := colorTypes[color.Type]
-	if !ok {
-		return 0	
-	}
-	return colorTypeInt
+func (color *Color) NameLen() uint16 {
+	return uint16(len(color.Name))
+}
+
+// Write color's block header as a part of encoding
+func (color *Color) writeBlockHeader(w io.Writer) (err error) {
+	colorEntry := uint16(0x0001)
+	return binary.Write(w, binary.BigEndian, colorEntry)
 }

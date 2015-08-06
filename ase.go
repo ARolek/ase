@@ -124,36 +124,24 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	}
 
 	// Write the details for colors
-	w.Write(ase.writeColors())
-	
+	if err = ase.writeColors(w); err != nil {
+		return err
+	}
+
 	// Write the details for groups
 
 	return nil
 }
 
 // Encode the data for ase.Colors according to the ASE spec.
-// func (ase *ASE) writeColors() []byte {
-// 	// if len(ase.Colors) == 0 {
-// 	// 	return []byte
-// 	// }
-
-	
-// 	for _, color := range colors {
-// 		colorType := color.ColorTypeInt()
-// 		colorNameLen := color.NameLen()
-		
-// 		colorProps := []interface{}{
-// 			colorNameLen,
-// 			color.Name,
-// 			color.Model,
-// 			color.Values,
-// 			colorType,
-// 		}
-// 	}
-
-// come back after you eat
-// }
-
+func (ase *ASE) writeColors(w io.Writer) (err error) {
+	for _, color := range ase.Colors {
+		if err = color.write(w); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (ase *ASE) readSignature(r io.Reader) (err error) {
 	//	Read the signature
