@@ -95,10 +95,9 @@ func (color *Color) readName(r io.Reader) (err error) {
 	return
 }
 
-// TODO: Encode the color's name as a slice of uint16.
-// How can I go from string to a slice of uint16?
+// Encode the color's name as a slice of uint16.
 func (color *Color) writeName(w io.Writer) (err error) {
-	name := []byte(color.Name)
+	name := utf16.Encode([]rune(color.Name))
 	return binary.Write(w, binary.BigEndian, name)
 }
 
