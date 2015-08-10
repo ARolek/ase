@@ -5,12 +5,11 @@ import (
 	"errors"
 	"io"
 	"strings"
-	"unicode/utf8"
 	"unicode/utf16"
 )
 
 var (
-	ErrInvalidColorType = errors.New("ase: invalid color type")
+	ErrInvalidColorType  = errors.New("ase: invalid color type")
 	ErrInvalidColorValue = errors.New("ase: invalid color value")
 )
 
@@ -22,6 +21,7 @@ type Color struct {
 	Type    string //	Global, Spot, Normal
 }
 
+// Performs the necessary read functions for decoding a color from an ASE file.
 func (color *Color) read(r io.Reader) (err error) {
 
 	if err = color.readNameLen(r); err != nil {
@@ -43,6 +43,7 @@ func (color *Color) read(r io.Reader) (err error) {
 	return color.readColorType(r)
 }
 
+// Encodes a color's attributes according to the ASE specification.
 func (color *Color) write(w io.Writer) (err error) {
 
 	if err = color.writeBlockHeader(w); err != nil {
@@ -72,19 +73,15 @@ func (color *Color) write(w io.Writer) (err error) {
 	return
 }
 
+// Reads the color's name length.
 func (color *Color) readNameLen(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &color.nameLen)
 }
 
-// Write color's nameLen
-func (color *Color) writeNameLen(w io.Writer) (err error) {
-	return binary.Write(w, binary.BigEndian, color.NameLen())
-}
-
-
+// Reads the color's name.
 func (color *Color) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
-	name := make([]uint16, color.nameLen)
+	name := make([]uint16, color.nameLen) // assumes the nameLen was already defined.
 	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
 		return
 	}
@@ -96,30 +93,22 @@ func (color *Color) readName(r io.Reader) (err error) {
 	return
 }
 
-// Encode the color's name as a slice of uint16.
-func (color *Color) writeName(w io.Writer) (err error) {
-	name := utf16.Encode([]rune(color.Name))
-	name = append(name, uint16(0))
-	return binary.Write(w, binary.BigEndian, name)
-}
-
+// Reads the color's model.
 func (color *Color) readColorModel(r io.Reader) (err error) {
+	// make array for our color model, where four is the max possible
+	// amount of characters (RGB, LAB, CMYK, Gray).
 	colorModel := make([]uint8, 4)
 	if err = binary.Read(r, binary.BigEndian, colorModel); err != nil {
 		return
 	}
 
+	// Assign the string version of the `colorModel`
 	color.Model = strings.TrimSpace(string(colorModel[0:]))
 
 	return
 }
 
-// Encode the color's model as a of slice of uint8.
-func (color *Color) writeModel(w io.Writer) (err error) {
-	model := utf8.Encode([]rune(color.Model))
-	return binary.Write(w, binary.BigEndian, model)
-}
-
+// Reads the color's values.
 func (color *Color) readColorValues(r io.Reader) (err error) {
 	switch color.Model {
 	case "RGB":
@@ -168,12 +157,7 @@ func (color *Color) readColorValues(r io.Reader) (err error) {
 	return
 }
 
-// TODO: Write color's values
-func (color *Color) writeValues(w io.Writer) (err error) {
-	return binary.Write(w, binary.BigEndian, color.Values)
-}
-
-
+// Read the color's type.
 func (color *Color) readColorType(r io.Reader) (err error) {
 
 	colorType := make([]int16, 1)
@@ -200,6 +184,29 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 	return
 }
 
+// Encode the color's name length.
+func (color *Color) writeNameLen(w io.Writer) (err error) {
+	return binary.Write(w, binary.BigEndian, color.NameLen())
+}
+
+// Encode the color's name as a slice of uint16.
+func (color *Color) writeName(w io.Writer) (err error) {
+	name := utf16.Encode([]rune(color.Name))
+	name = append(name, uint16(0))
+	return binary.Write(w, binary.BigEndian, name)
+}
+
+// Encode the color's model as a of slice of uint8.
+func (color *Color) writeModel(w io.Writer) (err error) {
+	model := []rune(color.Model)
+	return binary.Write(w, binary.BigEndian, model)
+}
+
+// Encode color's values.
+func (color *Color) writeValues(w io.Writer) (err error) {
+	return binary.Write(w, binary.BigEndian, color.Values)
+}
+
 // Encode the color's type.
 func (color *Color) writeType(w io.Writer) (err error) {
 
@@ -222,11 +229,12 @@ func (color *Color) writeType(w io.Writer) (err error) {
 	return binary.Write(w, binary.BigEndian, []int16{colorType})
 }
 
+// Helper function that returns the length of a color's name.
 func (color *Color) NameLen() uint16 {
 	return uint16(len(color.Name))
 }
 
-// Write color's block header as a part of encoding
+// Write color's block header as a part of the ASE encoding.
 func (color *Color) writeBlockHeader(w io.Writer) (err error) {
 	colorEntry := uint16(0x0001)
 	return binary.Write(w, binary.BigEndian, colorEntry)
