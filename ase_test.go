@@ -56,37 +56,62 @@ var testColors = []Color{
 	},
 }
 
-func TestSignature(t *testing.T) {
-	testFile := "testfiles/test.ase"
-
-	ase, err := DecodeFile(testFile)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if ase.Signature() != "ASEF" {
-		t.Error("file signature is invalid")
-	}
+var testGroup = Group{
+	Name: "A Color Group",
+	Colors: []Color{
+		Color{
+			Name:   "Red",
+			Model:  "RGB",
+			Values: []float32{1, 0, 0},
+			Type:   "Global",
+		},
+		Color{
+			Name:   "Green",
+			Model:  "RGB",
+			Values: []float32{0, 1, 0},
+			Type:   "Global",
+		},
+		Color{
+			Name:   "Blue",
+			Model:  "RGB",
+			Values: []float32{0, 0, 1},
+			Type:   "Global",
+		},
+	},
 }
 
-func TestVersion(t *testing.T) {
-	testFile := "testfiles/test.ase"
+// func TestSignature(t *testing.T) {
+// 	testFile := "testfiles/test.ase"
 
-	ase, err := DecodeFile(testFile)
-	if err != nil {
-		t.Error(err)
-	}
+// 	ase, err := DecodeFile(testFile)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	if ase.Version() != "1.0" {
-		t.Error("did not get version 1.0, got:", ase.Version())
-	}
-}
+// 	if ase.Signature() != "ASEF" {
+// 		t.Error("file signature is invalid")
+// 	}
+// }
+
+// func TestVersion(t *testing.T) {
+// 	testFile := "testfiles/test.ase"
+
+// 	ase, err := DecodeFile(testFile)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+
+// 	if ase.Version() != "1.0" {
+// 		t.Error("did not get version 1.0, got:", ase.Version())
+// 	}
+// }
 
 func TestEncode(t *testing.T) {
 
 	// Initialize a sample ASE
 	sampleAse := ASE{}
 	sampleAse.Colors = testColors
+	sampleAse.Groups = append(sampleAse.Groups, testGroup)
 
 	// Encode the sampleAse into the buffer and immediately decode it.
 	b := new(bytes.Buffer)
@@ -102,9 +127,11 @@ func TestEncode(t *testing.T) {
 		t.Error("ase: version is not 1.0")
 	}
 
-	expectedNumBlocks := int32(8)
-	if ase.numBlocks != expectedNumBlocks {
-		t.Error("ase: expected", expectedNumBlocks, " blocks to be present")
+	expectedNumBlocks := int32(13)
+	actualNumBlocks := ase.numBlocks
+	if actualNumBlocks != expectedNumBlocks {
+		t.Error("ase: expected", expectedNumBlocks,
+			" blocks to be present, got: ", actualNumBlocks)
 	}
 
 	expectedAmountOfColors := 8
@@ -136,6 +163,13 @@ func TestEncode(t *testing.T) {
 			t.Error("expected color type ", expectedColor.Type,
 				"got ", color.Type)
 		}
+	}
+
+	expectedAmountOfGroups := 1
+	actualAmountOfGroups := len(ase.Groups)
+	if actualAmountOfGroups != expectedAmountOfGroups {
+		t.Error("expected ", expectedAmountOfGroups,
+			"amount of groups, got: ", actualAmountOfGroups)
 	}
 
 }
