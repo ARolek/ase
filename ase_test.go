@@ -116,11 +116,13 @@ func TestDecode(t *testing.T) {
 		t.Error(err)
 	}
 
+	// Check ASE's metadata (Signature and Version tested in separate functions)
 	expectedNumBlocks := int32(10)
 	if ase.numBlocks != expectedNumBlocks {
 		t.Error("expected ", expectedNumBlocks, " numBlocks, got ", ase.numBlocks)
 	}
-	
+
+	// Check the ASE's Colors
 	expectedColors := testColors[0:5]
 	expectedNumColors := len(expectedColors)
 	actualNumColors := len(ase.Colors)
@@ -129,7 +131,7 @@ func TestDecode(t *testing.T) {
 		t.Error("expected number of colors to be", expectedNumColors,
 			"got ", actualNumColors)
 	}
-	
+
 	for i, color := range ase.Colors {
 		expectedColor := expectedColors[i]
 
@@ -155,6 +157,50 @@ func TestDecode(t *testing.T) {
 				"got ", color.Type)
 		}
 	}
+
+	// Check the ASE's Groups' data
+	expectedGroupsLen := 1
+	actualGroupLen := len(ase.Groups)
+
+	if actualGroupLen != expectedGroupsLen {
+		t.Error("expected group length of ", expectedGroupsLen,
+			"got ", actualGroupLen)
+	}
+
+	group := ase.Groups[0]
+
+	if group.Name != testGroup.Name {
+		t.Error("expected group name to be ", testGroup.Name,
+			", got: ", group.Name)
+	}
+
+	// Check the ASE's Groups' Color Data
+	for i, color := range group.Colors {
+		expectedColor := testGroup.Colors[i]
+
+		if color.Name != expectedColor.Name {
+			t.Error("expected initial color with name ", expectedColor.Name,
+				"got ", color.Name)
+		}
+
+		if color.Model != expectedColor.Model {
+			t.Error("expected initial color of Model ", expectedColor.Model,
+				"got ", color.Model)
+		}
+
+		for j, _ := range expectedColor.Values {
+			if color.Values[j] != expectedColor.Values[j] {
+				t.Error("expected color value ", expectedColor.Values[j],
+					"got ", color.Values[j])
+			}
+		}
+
+		if color.Type != expectedColor.Type {
+			t.Error("expected color type ", expectedColor.Type,
+				"got ", color.Type)
+		}
+	}
+
 }
 
 func TestEncode(t *testing.T) {
