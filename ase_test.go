@@ -1,9 +1,10 @@
 package ase
 
 import (
+	// "fmt"
 	"bytes"
-	"log"
-	"os"
+	// "log"
+	// "os"
 	"testing"
 )
 
@@ -58,37 +59,6 @@ var testColors = []Color{
 	},
 }
 
-func TestDecode(t *testing.T) {
-	testFile := "testfiles/test.ase"
-
-	//	open our test file
-	f, err := os.Open(testFile)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//	test our decode
-	ase, err := Decode(f)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//	log our output
-	log.Printf("%+v\n", ase)
-}
-
-func TestDecodeFile(t *testing.T) {
-	testFile := "testfiles/test.ase"
-
-	ase, err := DecodeFile(testFile)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//	log our output
-	log.Printf("%+v\n", ase)
-}
-
 func TestSignature(t *testing.T) {
 	testFile := "testfiles/test.ase"
 
@@ -135,8 +105,40 @@ func TestEncode(t *testing.T) {
 		t.Error("ase: version is not 1.0")
 	}
 
-	if ase.numBlocks != 8 {
-		t.Error("ase: expected 8 blocks to be present")
+	expectedNumBlocks := int32(8)
+	if ase.numBlocks != expectedNumBlocks {
+		t.Error("ase: expected", expectedNumBlocks, " blocks to be present")
+	}
+
+	expectedAmountOfColors := 8
+	if len(ase.Colors) != expectedAmountOfColors {
+		t.Error("ase: expected", expectedAmountOfColors, " colors to be present")
+	}
+
+	for i, color := range ase.Colors {
+		expectedColor := testColors[i]
+
+		if color.Name != expectedColor.Name {
+			t.Error("expected initial color with name ", expectedColor.Name,
+				"got ", color.Name)
+		}
+
+		if color.Model != expectedColor.Model {
+			t.Error("expected initial color of Model ", expectedColor.Model,
+				"got ", color.Model)
+		}
+
+		for j, _ := range expectedColor.Values {
+			if color.Values[j] != expectedColor.Values[j] {
+				t.Error("expected color value ", expectedColor.Values[j],
+					"got ", color.Values[j])
+			}
+		}
+
+		if color.Type != expectedColor.Type {
+			t.Error("expected color type ", expectedColor.Type,
+				"got ", color.Type)
+		}
 	}
 
 }

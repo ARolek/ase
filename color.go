@@ -1,6 +1,7 @@
 package ase
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -11,6 +12,7 @@ import (
 var (
 	ErrInvalidColorType  = errors.New("ase: invalid color type")
 	ErrInvalidColorValue = errors.New("ase: invalid color value")
+	ErrInvalidColorModel = errors.New("ase: invalid color model")
 )
 
 type Color struct {
@@ -40,16 +42,27 @@ func (color *Color) read(r io.Reader) (err error) {
 		return
 	}
 
-	return color.readColorType(r)
+	if err = color.readColorType(r); err != nil {
+		return
+	}
+
+	return
 }
 
 // Encodes a color's attributes according to the ASE specification.
 func (color *Color) write(w io.Writer) (err error) {
 
-	if err = color.writeBlockHeader(w); err != nil {
+	// Write the block type
+	if err = color.writeBlockType(w); err != nil {
 		return
 	}
 
+	// Write the block length
+	if err = color.writeBlockLength(w); err != nil {
+		return
+	}
+
+	// Write the color data
 	if err = color.writeNameLen(w); err != nil {
 		return
 	}
@@ -198,7 +211,22 @@ func (color *Color) writeName(w io.Writer) (err error) {
 
 // Encode the color's model as a of slice of uint8.
 func (color *Color) writeModel(w io.Writer) (err error) {
-	model := []rune(color.Model)
+	model := make([]uint8, 4)
+
+	// Populate model with the uint8 version of the each character in the string.
+	for i, _ := range model {
+		colorModel := color.Model
+
+		// Our iterator over model needs to match the number of elements in color.Model.
+		// If color.Model has a length less than four, append an empty space.
+		if len(color.Model) < 4 {
+			for len(colorModel) < 4 {
+				colorModel += " "
+			}
+		}
+		model[i] = uint8([]rune(colorModel)[i])
+	}
+
 	return binary.Write(w, binary.BigEndian, model)
 }
 
@@ -231,11 +259,28 @@ func (color *Color) writeType(w io.Writer) (err error) {
 
 // Helper function that returns the length of a color's name.
 func (color *Color) NameLen() uint16 {
-	return uint16(len(color.Name))
+	return uint16(len(color.Name)) + 1
 }
 
 // Write color's block header as a part of the ASE encoding.
-func (color *Color) writeBlockHeader(w io.Writer) (err error) {
+func (color *Color) writeBlockType(w io.Writer) (err error) {
 	colorEntry := uint16(0x0001)
 	return binary.Write(w, binary.BigEndian, colorEntry)
+}
+
+// Write color's block length as a part of the ASE encoding.
+func (color *Color) writeBlockLength(w io.Writer) (err error) {
+	blockLength := color.calculateBlockLength()
+	return binary.Write(w, binary.BigEndian, blockLength)
+}
+
+// Calculates the block length to be written based on the color's attributes.
+func (color *Color) calculateBlockLength() int32 {
+	buf := new(bytes.Buffer)
+	color.writeNameLen(buf)
+	color.writeName(buf)
+	color.writeModel(buf)
+	color.writeValues(buf)
+	color.writeType(buf)
+	return int32(buf.Len())
 }
