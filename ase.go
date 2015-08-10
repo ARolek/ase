@@ -11,6 +11,7 @@ import (
 var (
 	ErrInvalidFile    = errors.New("ase: file not an ASE file")
 	ErrInvalidVersion = errors.New("ase: version is not 1.0")
+	ErrInvalidBlockType = errors.New("ase: invalid block type")
 )
 
 type ASE struct {

@@ -2,12 +2,7 @@ package ase
 
 import (
 	"encoding/binary"
-	"errors"
 	"io"
-)
-
-var (
-	ErrInvalidBlockType = errors.New("ase: invalid block type")
 )
 
 type block struct {
@@ -22,13 +17,10 @@ const (
 )
 
 func (b *block) Read(r io.Reader) (err error) {
-
-	//	type
 	if err = b.readType(r); err != nil {
 		return
 	}
 
-	//	block length
 	if err = b.readLength(r); err != nil {
 		return
 	}
@@ -36,13 +28,13 @@ func (b *block) Read(r io.Reader) (err error) {
 	return
 }
 
-//	0xc001 ⇒ Group start
-//	0xc002 ⇒ Group end
-//	0x0001 ⇒ Color entry
+// Reads the block's type.
+// Can either be a group's start block, a group's end block, or a color entry.
 func (block *block) readType(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &block.Type)
 }
 
+// Reads the block's length.
 func (block *block) readLength(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &block.Length)
 }
