@@ -35,52 +35,15 @@ func (color *Color) read(r io.Reader) (err error) {
 		return
 	}
 
-	if err = color.readColorModel(r); err != nil {
+	if err = color.readModel(r); err != nil {
 		return
 	}
 
-	if err = color.readColorValues(r); err != nil {
+	if err = color.readValues(r); err != nil {
 		return
 	}
 
-	if err = color.readColorType(r); err != nil {
-		return
-	}
-
-	return
-}
-
-// Encodes a color's attributes according to the ASE specification.
-func (color *Color) write(w io.Writer) (err error) {
-
-	// Write the block type
-	if err = color.writeBlockType(w); err != nil {
-		return
-	}
-
-	// Write the block length
-	if err = color.writeBlockLength(w); err != nil {
-		return
-	}
-
-	// Write the color data
-	if err = color.writeNameLen(w); err != nil {
-		return
-	}
-
-	if err = color.writeName(w); err != nil {
-		return
-	}
-
-	if err = color.writeModel(w); err != nil {
-		return
-	}
-
-	if err = color.writeValues(w); err != nil {
-		return
-	}
-
-	if err = color.writeType(w); err != nil {
+	if err = color.readType(r); err != nil {
 		return
 	}
 
@@ -108,7 +71,7 @@ func (color *Color) readName(r io.Reader) (err error) {
 }
 
 // Reads the color's model.
-func (color *Color) readColorModel(r io.Reader) (err error) {
+func (color *Color) readModel(r io.Reader) (err error) {
 	// make array for our color model, where four is the max possible
 	// amount of characters (RGB, LAB, CMYK, Gray).
 	colorModel := make([]uint8, 4)
@@ -123,7 +86,7 @@ func (color *Color) readColorModel(r io.Reader) (err error) {
 }
 
 // Reads the color's values.
-func (color *Color) readColorValues(r io.Reader) (err error) {
+func (color *Color) readValues(r io.Reader) (err error) {
 	switch color.Model {
 	case "RGB":
 		rgb := make([]float32, 3)
@@ -172,7 +135,7 @@ func (color *Color) readColorValues(r io.Reader) (err error) {
 }
 
 // Read the color's type.
-func (color *Color) readColorType(r io.Reader) (err error) {
+func (color *Color) readType(r io.Reader) (err error) {
 
 	colorType := make([]int16, 1)
 
@@ -196,6 +159,60 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 	}
 
 	return
+}
+
+// Encodes a color's attributes according to the ASE specification.
+func (color *Color) write(w io.Writer) (err error) {
+
+	// Write the block type
+	if err = color.writeBlockType(w); err != nil {
+		return
+	}
+
+	// Write the block length
+	if err = color.writeBlockLength(w); err != nil {
+		return
+	}
+
+	// Write the color data
+	if err = color.writeNameLen(w); err != nil {
+		return
+	}
+
+	if err = color.writeName(w); err != nil {
+		return
+	}
+
+	if err = color.writeModel(w); err != nil {
+		return
+	}
+
+	if err = color.writeValues(w); err != nil {
+		return
+	}
+
+	if err = color.writeType(w); err != nil {
+		return
+	}
+
+	return
+}
+
+// Write color's block length as a part of the ASE encoding.
+func (color *Color) writeBlockLength(w io.Writer) (err error) {
+	blockLength := color.calculateBlockLength()
+	return binary.Write(w, binary.BigEndian, blockLength)
+}
+
+// Calculates the block length to be written based on the color's attributes.
+func (color *Color) calculateBlockLength() int32 {
+	buf := new(bytes.Buffer)
+	color.writeNameLen(buf)
+	color.writeName(buf)
+	color.writeModel(buf)
+	color.writeValues(buf)
+	color.writeType(buf)
+	return int32(buf.Len())
 }
 
 // Encode the color's name length.
@@ -267,21 +284,4 @@ func (color *Color) NameLen() uint16 {
 // Write color's block header as a part of the ASE encoding.
 func (color *Color) writeBlockType(w io.Writer) (err error) {
 	return binary.Write(w, binary.BigEndian, colorEntry)
-}
-
-// Write color's block length as a part of the ASE encoding.
-func (color *Color) writeBlockLength(w io.Writer) (err error) {
-	blockLength := color.calculateBlockLength()
-	return binary.Write(w, binary.BigEndian, blockLength)
-}
-
-// Calculates the block length to be written based on the color's attributes.
-func (color *Color) calculateBlockLength() int32 {
-	buf := new(bytes.Buffer)
-	color.writeNameLen(buf)
-	color.writeName(buf)
-	color.writeModel(buf)
-	color.writeValues(buf)
-	color.writeType(buf)
-	return int32(buf.Len())
 }
