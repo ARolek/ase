@@ -129,8 +129,20 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	}
 
 	// Write the details for groups
+	if err = ase.writeGroups(w); err != nil {
+		return err	
+	}
 
 	return nil
+}
+
+func (ase *ASE) writeGroups(w io.Writer) (err error) {
+	for _, group := range ase.Groups {
+		if err = group.write(w); err != nil {
+			return err	
+		}
+	}
+	return nil	
 }
 
 // Encode the data for ase.Colors according to the ASE spec.

@@ -36,3 +36,12 @@ func (group *Group) readName(r io.Reader) (err error) {
 
 	return
 }
+
+func (group *Group) write(w io.Writer) (err error) {
+	// writeBlockTypeStart
+	// writeBlockLength
+	// writeNameLen
+	// writeName
+	// writeColors
+	// writeBlockTypeEnd
+}
