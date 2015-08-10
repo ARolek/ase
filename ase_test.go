@@ -81,28 +81,44 @@ var testGroup = Group{
 }
 
 func TestSignature(t *testing.T) {
-	testFile := "testfiles/test.ase"
+	testFile := "samples/test.ase"
 
 	ase, err := DecodeFile(testFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if ase.Signature() != "ASEF" {
-		t.Error("file signature is invalid")
+	expectedSignature := "ASEF"
+	if ase.Signature() != expectedSignature {
+		t.Error("expected signature of", expectedSignature, ", got:", ase.Signature())
 	}
 }
 
 func TestVersion(t *testing.T) {
-	testFile := "testfiles/test.ase"
+	testFile := "samples/test.ase"
 
 	ase, err := DecodeFile(testFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if ase.Version() != "1.0" {
-		t.Error("did not get version 1.0, got:", ase.Version())
+	expectedVersion := "1.0"
+	if ase.Version() != expectedVersion {
+		t.Error("expected version of", expectedVersion, ", got:", ase.Version())
+	}
+}
+
+func TestDecode(t *testing.T) {
+	testFile := "samples/test.ase"
+
+	ase, err := DecodeFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expectedNumBlocks := int32(10)
+	if ase.numBlocks != expectedNumBlocks {
+		t.Error("expected ", expectedNumBlocks, " numBlocks, got ", ase.numBlocks)
 	}
 }
 
