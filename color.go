@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"unicode/utf8"
 	"unicode/utf16"
 )
 
@@ -98,6 +99,7 @@ func (color *Color) readName(r io.Reader) (err error) {
 // Encode the color's name as a slice of uint16.
 func (color *Color) writeName(w io.Writer) (err error) {
 	name := utf16.Encode([]rune(color.Name))
+	name = append(name, uint16(0))
 	return binary.Write(w, binary.BigEndian, name)
 }
 
@@ -112,10 +114,10 @@ func (color *Color) readColorModel(r io.Reader) (err error) {
 	return
 }
 
-// TODO: Write color's model
-// How can I go from a string to a slice of uint8?
+// Encode the color's model as a of slice of uint8.
 func (color *Color) writeModel(w io.Writer) (err error) {
-	return binary.Write(w, binary.BigEndian, color.Model)
+	model := utf8.Encode([]rune(color.Model))
+	return binary.Write(w, binary.BigEndian, model)
 }
 
 func (color *Color) readColorValues(r io.Reader) (err error) {
