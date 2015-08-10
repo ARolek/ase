@@ -54,7 +54,7 @@ func Decode(r io.Reader) (ase ASE, err error) {
 
 		//	switch on block type
 		switch b.Type {
-		case color:
+		case colorEntry:
 			c := Color{}
 			if err = c.read(r); err != nil {
 				return
@@ -130,7 +130,7 @@ func Encode(ase ASE, w io.Writer) (err error) {
 
 	// Write the details for groups
 	if err = ase.writeGroups(w); err != nil {
-		return err	
+		return err
 	}
 
 	return nil
@@ -139,10 +139,10 @@ func Encode(ase ASE, w io.Writer) (err error) {
 func (ase *ASE) writeGroups(w io.Writer) (err error) {
 	for _, group := range ase.Groups {
 		if err = group.write(w); err != nil {
-			return err	
+			return err
 		}
 	}
-	return nil	
+	return nil
 }
 
 // Encode the data for ase.Colors according to the ASE spec.

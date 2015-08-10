@@ -18,7 +18,7 @@ type block struct {
 const (
 	groupStart = uint16(0xc001)
 	groupEnd   = uint16(0xc002)
-	color      = uint16(0x0001)
+	colorEntry = uint16(0x0001)
 )
 
 func (b *block) Read(r io.Reader) (err error) {

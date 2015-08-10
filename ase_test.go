@@ -80,31 +80,31 @@ var testGroup = Group{
 	},
 }
 
-// func TestSignature(t *testing.T) {
-// 	testFile := "testfiles/test.ase"
+func TestSignature(t *testing.T) {
+	testFile := "testfiles/test.ase"
 
-// 	ase, err := DecodeFile(testFile)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	ase, err := DecodeFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	if ase.Signature() != "ASEF" {
-// 		t.Error("file signature is invalid")
-// 	}
-// }
+	if ase.Signature() != "ASEF" {
+		t.Error("file signature is invalid")
+	}
+}
 
-// func TestVersion(t *testing.T) {
-// 	testFile := "testfiles/test.ase"
+func TestVersion(t *testing.T) {
+	testFile := "testfiles/test.ase"
 
-// 	ase, err := DecodeFile(testFile)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	ase, err := DecodeFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	if ase.Version() != "1.0" {
-// 		t.Error("did not get version 1.0, got:", ase.Version())
-// 	}
-// }
+	if ase.Version() != "1.0" {
+		t.Error("did not get version 1.0, got:", ase.Version())
+	}
+}
 
 func TestEncode(t *testing.T) {
 
@@ -170,6 +170,39 @@ func TestEncode(t *testing.T) {
 	if actualAmountOfGroups != expectedAmountOfGroups {
 		t.Error("expected ", expectedAmountOfGroups,
 			"amount of groups, got: ", actualAmountOfGroups)
+	}
+
+	group := ase.Groups[0]
+
+	if group.Name != testGroup.Name {
+		t.Error("expected group name to be ", testGroup.Name,
+			", got: ", group.Name)
+	}
+
+	for i, color := range group.Colors {
+		expectedColor := testGroup.Colors[i]
+
+		if color.Name != expectedColor.Name {
+			t.Error("expected initial color with name ", expectedColor.Name,
+				"got ", color.Name)
+		}
+
+		if color.Model != expectedColor.Model {
+			t.Error("expected initial color of Model ", expectedColor.Model,
+				"got ", color.Model)
+		}
+
+		for j, _ := range expectedColor.Values {
+			if color.Values[j] != expectedColor.Values[j] {
+				t.Error("expected color value ", expectedColor.Values[j],
+					"got ", color.Values[j])
+			}
+		}
+
+		if color.Type != expectedColor.Type {
+			t.Error("expected color type ", expectedColor.Type,
+				"got ", color.Type)
+		}
 	}
 
 }

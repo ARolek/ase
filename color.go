@@ -199,7 +199,8 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 
 // Encode the color's name length.
 func (color *Color) writeNameLen(w io.Writer) (err error) {
-	return binary.Write(w, binary.BigEndian, color.NameLen())
+	// Adding one to the name length accounts for the zero-terminated character.
+	return binary.Write(w, binary.BigEndian, color.NameLen()+1)
 }
 
 // Encode the color's name as a slice of uint16.
@@ -259,12 +260,11 @@ func (color *Color) writeType(w io.Writer) (err error) {
 
 // Helper function that returns the length of a color's name.
 func (color *Color) NameLen() uint16 {
-	return uint16(len(color.Name)) + 1
+	return uint16(len(color.Name))
 }
 
 // Write color's block header as a part of the ASE encoding.
 func (color *Color) writeBlockType(w io.Writer) (err error) {
-	colorEntry := uint16(0x0001)
 	return binary.Write(w, binary.BigEndian, colorEntry)
 }
 
