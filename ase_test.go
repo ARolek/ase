@@ -1,10 +1,7 @@
 package ase
 
 import (
-	// "fmt"
 	"bytes"
-	// "log"
-	// "os"
 	"testing"
 )
 
