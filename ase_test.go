@@ -120,6 +120,41 @@ func TestDecode(t *testing.T) {
 	if ase.numBlocks != expectedNumBlocks {
 		t.Error("expected ", expectedNumBlocks, " numBlocks, got ", ase.numBlocks)
 	}
+	
+	expectedColors := testColors[0:5]
+	expectedNumColors := len(expectedColors)
+	actualNumColors := len(ase.Colors)
+
+	if actualNumColors != expectedNumColors {
+		t.Error("expected number of colors to be", expectedNumColors,
+			"got ", actualNumColors)
+	}
+	
+	for i, color := range ase.Colors {
+		expectedColor := expectedColors[i]
+
+		if color.Name != expectedColor.Name {
+			t.Error("expected initial color with name ", expectedColor.Name,
+				"got ", color.Name)
+		}
+
+		if color.Model != expectedColor.Model {
+			t.Error("expected initial color of Model ", expectedColor.Model,
+				"got ", color.Model)
+		}
+
+		for j, _ := range expectedColor.Values {
+			if color.Values[j] != expectedColor.Values[j] {
+				t.Error("expected color value ", expectedColor.Values[j],
+					"got ", color.Values[j])
+			}
+		}
+
+		if color.Type != expectedColor.Type {
+			t.Error("expected color type ", expectedColor.Type,
+				"got ", color.Type)
+		}
+	}
 }
 
 func TestEncode(t *testing.T) {
