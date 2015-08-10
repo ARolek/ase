@@ -20,10 +20,11 @@ type Color struct {
 	Name    string
 	Model   string // CMYK, RGB, LAB or Gray
 	Values  []float32
-	Type    string //	Global, Spot, Normal
+	Type    string // Global, Spot, Normal
 }
 
-// Performs the necessary read functions for decoding a color from an ASE file.
+// Read decodes a color's fields from an io.Reader interface
+// in the order specified by the ASE specification.
 func (color *Color) read(r io.Reader) (err error) {
 
 	if err = color.readNameLen(r); err != nil {
