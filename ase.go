@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"os"
+	"log"
+	"unicode/utf16"
 )
 
 var (
@@ -41,6 +43,8 @@ func Decode(r io.Reader) (ase ASE, err error) {
 
 		//	decode the block container
 		b.Read(r)
+
+		ase.Blocks = append(ase.Blocks, b)
 
 		//	switch on block type
 		switch b.Type {
@@ -95,26 +99,13 @@ func DecodeFile(file string) (ase ASE, err error) {
 	return Decode(f)
 }
 
-//	TODO: complete encode method
-func Encode(ase ASE, w io.Writer) (err error) {
-
-	//	write signature
-
-	//	write version
-
-	//	write number of blocks
-
-	//	write details of each block
-
-	return
-}
-
 type ASE struct {
 	signature [4]uint8
 	version   [2]int16
 	numBlocks int32
 	Colors    []Color
 	Groups    []Group
+	Blocks    []block
 }
 
 //	ASE Files start are signed with ASEF at the beginning of the file
@@ -133,6 +124,79 @@ func (ase *ASE) readSignature(r io.Reader) (err error) {
 	return
 }
 
+func Encode(ase ASE, w io.Writer) (err error) {
+
+	if err = ase.writeSignature(w); err != nil {
+		return
+	}
+
+	if err = ase.writeVersion(w); err != nil {
+		return
+	}
+
+	if err = ase.writeNumBlock(w); err != nil {
+		return
+	}
+
+
+
+	//	itereate based on our block count
+	for i := 0; i < int(ase.numBlocks); i++ {
+		b := ase.Blocks[i]
+		if err = ase.writeBlockType(w, ase.Blocks[i]); err != nil {
+			return
+		}
+
+		if err = ase.writeBlockLength (w, ase.Blocks[i]); err != nil {
+			return
+		}
+
+
+
+
+		switch b.Type {
+			case color:
+				if err = ase.writeColorName(w, ase.Colors[i]); err != nil {
+					return
+				}
+
+				if err = ase.writeColorModel(w, ase.Colors[i]); err != nil {
+					return
+				}
+
+				if err = ase.writeColorValues(w, ase.Colors[i]); err != nil {
+					return
+				}
+
+				if err = ase.writeColorType(w, ase.Colors[i]); err != nil {
+					return
+				}
+
+
+				break
+			case groupStart:
+
+
+				break
+			case groupEnd:
+
+				break
+			default:
+				err = ErrInvalidBlockType
+				return
+		}
+
+	}
+
+
+
+	var numOfColors = len(ase.Colors)
+	var numOfGroups = len(ase.Groups)
+	log.Print("Number of colors ", numOfColors)
+	log.Print("Number of groups ", numOfGroups)
+	return
+}
+
 //	ASE version. Should be 1.0
 func (ase *ASE) readVersion(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &ase.version)
@@ -147,3 +211,69 @@ func (ase *ASE) readNumBlock(r io.Reader) error {
 func (ase *ASE) Signature() string {
 	return string(ase.signature[0:])
 }
+
+func (ase *ASE) writeSignature(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.signature)
+}
+
+func (ase *ASE) writeVersion(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.version)
+}
+
+func (ase *ASE) writeNumBlock(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.numBlocks)
+}
+
+func (ase *ASE) writeBlockType(w io.Writer, b block) error {
+	return binary.Write(w, binary.BigEndian, b.Type)
+}
+
+func (ase *ASE) writeBlockLength(w io.Writer, b block) error {
+	return binary.Write(w, binary.BigEndian, b.Length)
+}
+
+func (ase *ASE) writeColorName(w io.Writer, c Color) error {
+	colorNameSlice := []rune(c.Name)
+	colorNameSlice = append(colorNameSlice, 0)
+	colorName := utf16.Encode(colorNameSlice)
+	return binary.Write(w, binary.BigEndian, colorName)
+}
+
+func (ase *ASE) writeColorModel(w io.Writer, c Color) error {
+	colorModelSlice := []rune(c.Model)
+	colorModel := utf16.Encode(colorModelSlice)
+	return binary.Write(w,binary.BigEndian, colorModel)
+}
+
+func (ase *ASE) writeColorValues(w io.Writer, c Color) error {
+	var err error
+	for _, cv := range c.Values {
+		err = binary.Write(w,binary.BigEndian, cv)
+
+		if(err != nil){
+			return err
+		}
+	}
+	return err
+}
+
+func (ase *ASE) writeColorType(w io.Writer, c Color) error {
+	var cType int16
+	switch {
+		case c.Type == "Global":
+			cType = 0
+			break
+		case c.Type == "Spot":
+			cType = 1
+			break
+		case c.Type ==  "Normal":
+			cType = 2
+			break
+		default:
+			return ErrInvalidColorType
+
+	}
+	return binary.Write(w, binary.BigEndian, cType)
+}
+
+
