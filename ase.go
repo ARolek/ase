@@ -156,6 +156,10 @@ func Encode(ase ASE, w io.Writer) (err error) {
 
 		switch b.Type {
 			case color:
+				if err = ase.writeNameLength(w, ase.Colors[i]); err != nil {
+					return
+				}
+
 				if err = ase.writeColorName(w, ase.Colors[i]); err != nil {
 					return
 				}
@@ -240,9 +244,7 @@ func (ase *ASE) writeColorName(w io.Writer, c Color) error {
 }
 
 func (ase *ASE) writeColorModel(w io.Writer, c Color) error {
-	colorModelSlice := []rune(c.Model)
-	colorModel := utf16.Encode(colorModelSlice)
-	return binary.Write(w,binary.BigEndian, colorModel)
+	return binary.Write(w,binary.BigEndian, []byte(c.Model))
 }
 
 func (ase *ASE) writeColorValues(w io.Writer, c Color) error {
@@ -276,4 +278,7 @@ func (ase *ASE) writeColorType(w io.Writer, c Color) error {
 	return binary.Write(w, binary.BigEndian, cType)
 }
 
+func (ase *ASE) writeNameLength(w io.Writer, c Color) error {
+	return binary.Write(w, binary.BigEndian, c.nameLen)
+}
 
