@@ -143,51 +143,22 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	//	itereate based on our block count
 	for i := 0; i < int(ase.numBlocks); i++ {
 		b := ase.Blocks[i]
-		if err = ase.writeBlockType(w, ase.Blocks[i]); err != nil {
+
+		if err = b.Write(w); err != nil {
 			return
 		}
 
-		if err = ase.writeBlockLength (w, ase.Blocks[i]); err != nil {
-			return
-		}
-
-
+		c := ase.Colors[i]
 
 
 		switch b.Type {
 			case color:
-				if err = ase.writeColorNameLength(w, ase.Colors[i]); err != nil {
-					return
-				}
-
-				if err = ase.writeColorName(w, ase.Colors[i]); err != nil {
-					return
-				}
-
-				if err = ase.writeColorModel(w, ase.Colors[i]); err != nil {
-					return
-				}
-
-				if err = ase.writeColorValues(w, ase.Colors[i]); err != nil {
-					return
-				}
-
-				if err = ase.writeColorType(w, ase.Colors[i]); err != nil {
-					return
-				}
-
-
+					c.write(w)
 				break
 			case groupStart:
-
-
 				if err = ase.writeGroupNameLength(w, ase.Groups[i]); err != nil {
 					return
 				}
-
-
-
-
 
 				break
 			case groupEnd:
@@ -235,60 +206,6 @@ func (ase *ASE) writeVersion(w io.Writer) error {
 
 func (ase *ASE) writeNumBlock(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, ase.numBlocks)
-}
-
-func (ase *ASE) writeBlockType(w io.Writer, b block) error {
-	return binary.Write(w, binary.BigEndian, b.Type)
-}
-
-func (ase *ASE) writeBlockLength(w io.Writer, b block) error {
-	return binary.Write(w, binary.BigEndian, b.Length)
-}
-
-func (ase *ASE) writeColorName(w io.Writer, c Color) error {
-	colorNameSlice := []rune(c.Name)
-	colorNameSlice = append(colorNameSlice, 0)
-	colorName := utf16.Encode(colorNameSlice)
-	return binary.Write(w, binary.BigEndian, colorName)
-}
-
-func (ase *ASE) writeColorModel(w io.Writer, c Color) error {
-	return binary.Write(w,binary.BigEndian, []byte(c.Model))
-}
-
-func (ase *ASE) writeColorValues(w io.Writer, c Color) error {
-	var err error
-	for _, cv := range c.Values {
-		err = binary.Write(w,binary.BigEndian, cv)
-
-		if(err != nil){
-			return err
-		}
-	}
-	return err
-}
-
-func (ase *ASE) writeColorType(w io.Writer, c Color) error {
-	var cType int16
-	switch {
-		case c.Type == "Global":
-			cType = 0
-			break
-		case c.Type == "Spot":
-			cType = 1
-			break
-		case c.Type ==  "Normal":
-			cType = 2
-			break
-		default:
-			return ErrInvalidColorType
-
-	}
-	return binary.Write(w, binary.BigEndian, cType)
-}
-
-func (ase *ASE) writeColorNameLength(w io.Writer, c Color) error {
-	return binary.Write(w, binary.BigEndian, c.nameLen)
 }
 
 func (ase *ASE) writeGroupNameLength(w io.Writer, g Group) error {
