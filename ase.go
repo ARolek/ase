@@ -156,7 +156,7 @@ func Encode(ase ASE, w io.Writer) (err error) {
 
 		switch b.Type {
 			case color:
-				if err = ase.writeNameLength(w, ase.Colors[i]); err != nil {
+				if err = ase.writeColorNameLength(w, ase.Colors[i]); err != nil {
 					return
 				}
 
@@ -181,9 +181,18 @@ func Encode(ase ASE, w io.Writer) (err error) {
 			case groupStart:
 
 
+				if err = ase.writeGroupNameLength(w, ase.Groups[i]); err != nil {
+					return
+				}
+
+
+
+
+
 				break
 			case groupEnd:
 
+				//Write group end
 				break
 			default:
 				err = ErrInvalidBlockType
@@ -278,7 +287,17 @@ func (ase *ASE) writeColorType(w io.Writer, c Color) error {
 	return binary.Write(w, binary.BigEndian, cType)
 }
 
-func (ase *ASE) writeNameLength(w io.Writer, c Color) error {
+func (ase *ASE) writeColorNameLength(w io.Writer, c Color) error {
 	return binary.Write(w, binary.BigEndian, c.nameLen)
 }
 
+func (ase *ASE) writeGroupNameLength(w io.Writer, g Group) error {
+	return binary.Write(w, binary.BigEndian, g.nameLen)
+}
+
+func (ase *ASE) writeGroupName(w io.Writer, g Group) error {
+	groupNameSlice := []rune(g.Name)
+	groupNameSlice = append(groupNameSlice, 0)
+	groupName := utf16.Encode(groupNameSlice)
+	return binary.Write(w, binary.BigEndian, groupName)
+}
