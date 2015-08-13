@@ -132,7 +132,7 @@ func (ase *ASE) Version() string {
 	return strconv.Itoa(int(ase.version[0])) + "." + strconv.Itoa(int(ase.version[1]))
 }
 
-// Reads the signature of the ASE file.
+// Decodes the ASE's signature
 func (ase *ASE) readSignature(r io.Reader) (err error) {
 	//	Read the signature
 	if err = binary.Read(r, binary.BigEndian, &ase.signature); err != nil {
@@ -147,7 +147,7 @@ func (ase *ASE) readSignature(r io.Reader) (err error) {
 	return
 }
 
-//	Reads the version of the ASE file.
+//	Decodes the ASE's version
 func (ase *ASE) readVersion(r io.Reader) (err error) {
 	// Read the version
 	if err = binary.Read(r, binary.BigEndian, &ase.version); err != nil {
@@ -162,27 +162,32 @@ func (ase *ASE) readVersion(r io.Reader) (err error) {
 	return
 }
 
-//	Reads the total number of blocks of the ASE file.
+//	Decodes the ASE's number of blocks
 func (ase *ASE) readNumBlocks(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &ase.numBlocks)
 }
 
-// Returns the ASE signature as a slice of bytes.
+// Encodes the ASE signature
 func (ase *ASE) writeSignature(w io.Writer) (err error) {
 	signature := []byte("ASEF")
 	return binary.Write(w, binary.BigEndian, signature)
 }
 
-// Returns the ASE version as of slice of bytes.
+// Encodes the ASE version
 func (ase *ASE) writeVersion(w io.Writer) (err error) {
 	version := [2]int16{1, 0}
 	return binary.Write(w, binary.BigEndian, version)
 }
 
-// Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
-// There is currently no mechanism in place to update numBlocks if
-// a user adds or removes either colors, groups, or colors within groups
+// Encodes the ASE's number of blocks
 func (ase *ASE) writeNumBlocks(w io.Writer) (err error) {
+	numBlocks := ase.calculateNumBlocks()
+	return binary.Write(w, binary.BigEndian, numBlocks)
+}
+
+// Determines the numBlocks of an ASE on the fly rather than returning its `ase.numBlocks` attribute.
+// There is currently no mechanism in place to update numBlocks if a user adds or removes either colors, groups, or colors within groups.
+func (ase *ASE) calculateNumBlocks() (numBlocks int32) {
 	// A color has only one block.
 	colorBlocks := len(ase.Colors)
 
@@ -196,9 +201,9 @@ func (ase *ASE) writeNumBlocks(w io.Writer) (err error) {
 		}
 	}
 
-	// Write blocks
-	blocks := int32(colorBlocks + groupBlocks)
-	return binary.Write(w, binary.BigEndian, blocks)
+	numBlocks = int32(colorBlocks + groupBlocks)
+
+	return
 }
 
 // Encode the data for ase.Colors according to the ASE spec.
