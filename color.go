@@ -140,3 +140,81 @@ func (color *Color) readColorType(r io.Reader) (err error) {
 
 	return
 }
+
+func (color *Color) write(w io.Writer) (err error) {
+	if err = color.writeColorNameLength(w); err != nil {
+		return
+	}
+
+	if err = color.writeColorName(w); err != nil {
+		return
+	}
+
+	if err = color.writeColorModel(w); err != nil {
+		return
+	}
+
+	if err = color.writeColorValues(w); err != nil {
+		return
+	}
+
+	if err = color.writeColorType(w); err != nil {
+		return
+	}
+
+	return
+}
+
+func (color *Color) writeColorName(w io.Writer) error {
+	colorNameSlice := []rune(color.Name)
+	colorNameSlice = append(colorNameSlice, 0)
+	colorName := utf16.Encode(colorNameSlice)
+	return binary.Write(w, binary.BigEndian, colorName)
+}
+
+func (color *Color) writeColorModel(w io.Writer) error {
+	colorSlice := []byte(color.Model)
+
+	//If color model is either RGB or LAB append space (0x20)
+	if color.Model == "RGB" || color.Model == "LAB" {
+		colorSlice = append(colorSlice, 0x20)
+	}
+
+	return binary.Write(w,binary.BigEndian, colorSlice)
+}
+
+func (color *Color) writeColorValues(w io.Writer) error {
+	var err error
+	for _, cv := range color.Values {
+
+		err = binary.Write(w,binary.BigEndian, cv)
+
+		if(err != nil){
+			return err
+		}
+	}
+	return err
+}
+
+func (color *Color) writeColorType(w io.Writer) error {
+	var cType int16
+	switch {
+		case color.Type == "Global":
+			cType = 0
+			break
+		case color.Type == "Spot":
+			cType = 1
+			break
+		case color.Type ==  "Normal":
+			cType = 2
+			break
+		default:
+			return ErrInvalidColorType
+
+	}
+	return binary.Write(w, binary.BigEndian, cType)
+}
+
+func (color *Color) writeColorNameLength(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, color.nameLen)
+}
