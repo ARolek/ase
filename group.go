@@ -100,7 +100,10 @@ func (group *Group) NameLen() uint16 {
 // Write color's block length as a part of the ASE encoding.
 func (group *Group) writeBlockLength(w io.Writer) (err error) {
 	blockLength := group.calculateBlockLength()
-	return binary.Write(w, binary.BigEndian, blockLength)
+	if err = binary.Write(w, binary.BigEndian, blockLength); err != nil {
+		return err
+	}
+	return
 }
 
 // Calculates the block length to be written based on the color's attributes.

@@ -201,17 +201,22 @@ func (color *Color) write(w io.Writer) (err error) {
 // Write color's block length as a part of the ASE encoding.
 func (color *Color) writeBlockLength(w io.Writer) (err error) {
 	blockLength := color.calculateBlockLength()
-	return binary.Write(w, binary.BigEndian, blockLength)
+	if err = binary.Write(w, binary.BigEndian, blockLength); err != nil {
+		return err
+	}
+	return
 }
 
 // Calculates the block length to be written based on the color's attributes.
 func (color *Color) calculateBlockLength() int32 {
 	buf := new(bytes.Buffer)
+
 	color.writeNameLen(buf)
 	color.writeName(buf)
 	color.writeModel(buf)
 	color.writeValues(buf)
 	color.writeType(buf)
+
 	return int32(buf.Len())
 }
 
