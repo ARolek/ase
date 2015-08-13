@@ -5,8 +5,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"log"
-	"unicode/utf16"
 )
 
 var (
@@ -138,32 +136,51 @@ func Encode(ase ASE, w io.Writer) (err error) {
 		return
 	}
 
+	var g Group
 
+	//Group color index
+	j := 0
+
+	//Group index
+	k := 0
 
 	//	itereate based on our block count
 	for i := 0; i < int(ase.numBlocks); i++ {
+
 		b := ase.Blocks[i]
 
 		if err = b.Write(w); err != nil {
 			return
 		}
 
-		c := ase.Colors[i]
-
-
 		switch b.Type {
 			case color:
-					c.write(w)
-				break
-			case groupStart:
-				if err = ase.writeGroupNameLength(w, ase.Groups[i]); err != nil {
+				c := Color{}
+
+				if g.Name == "" {
+					c = ase.Colors[i]
+				} else {
+					c = g.Colors[j]
+					j++
+				}
+
+
+				if err = c.write(w); err != nil {
 					return
 				}
 
 				break
-			case groupEnd:
+			case groupStart:
+				g = ase.Groups[k]
+				if err = g.write(w); err != nil {
+					return
+				}
 
-				//Write group end
+				k++
+				break
+			case groupEnd:
+				g = Group{}
+				j = 0
 				break
 			default:
 				err = ErrInvalidBlockType
@@ -172,12 +189,6 @@ func Encode(ase ASE, w io.Writer) (err error) {
 
 	}
 
-
-
-	var numOfColors = len(ase.Colors)
-	var numOfGroups = len(ase.Groups)
-	log.Print("Number of colors ", numOfColors)
-	log.Print("Number of groups ", numOfGroups)
 	return
 }
 
@@ -206,15 +217,4 @@ func (ase *ASE) writeVersion(w io.Writer) error {
 
 func (ase *ASE) writeNumBlock(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, ase.numBlocks)
-}
-
-func (ase *ASE) writeGroupNameLength(w io.Writer, g Group) error {
-	return binary.Write(w, binary.BigEndian, g.nameLen)
-}
-
-func (ase *ASE) writeGroupName(w io.Writer, g Group) error {
-	groupNameSlice := []rune(g.Name)
-	groupNameSlice = append(groupNameSlice, 0)
-	groupName := utf16.Encode(groupNameSlice)
-	return binary.Write(w, binary.BigEndian, groupName)
 }
