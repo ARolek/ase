@@ -78,8 +78,9 @@ func (group *Group) writeBlockStart(w io.Writer) (err error) {
 
 // Wrapper around writing a group end header.
 func (group *Group) writeBlockEnd(w io.Writer) (err error) {
-	// First writes the groupEnd block followed by a terminating zero.
+	// First writes the groupEnd block followed by two terminating zeroes.
 	binary.Write(w, binary.BigEndian, groupEnd)
+	binary.Write(w, binary.BigEndian, uint16(0x0000))
 	return binary.Write(w, binary.BigEndian, uint16(0x0000))
 }
 
