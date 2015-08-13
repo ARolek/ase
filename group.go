@@ -36,3 +36,26 @@ func (group *Group) readName(r io.Reader) (err error) {
 
 	return
 }
+
+func (group *Group) write(w io.Writer) (err error){
+	if err = group.writeName(w); err != nil {
+		return
+	}
+
+	if err = group.writeNameLen(w); err != nil {
+		return
+	}
+
+	return
+}
+
+func (group *Group) writeNameLen(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, group.nameLen)
+}
+
+func (group *Group) writeName(w io.Writer) error {
+	groupNameSlice := []rune(group.Name)
+	groupNameSlice = append(groupNameSlice, 0)
+	groupName := utf16.Encode(groupNameSlice)
+	return binary.Write(w, binary.BigEndian, groupName)
+}

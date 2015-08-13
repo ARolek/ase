@@ -42,6 +42,8 @@ func Decode(r io.Reader) (ase ASE, err error) {
 		//	decode the block container
 		b.Read(r)
 
+		ase.Blocks = append(ase.Blocks, b)
+
 		//	switch on block type
 		switch b.Type {
 		case color:
@@ -95,26 +97,13 @@ func DecodeFile(file string) (ase ASE, err error) {
 	return Decode(f)
 }
 
-//	TODO: complete encode method
-func Encode(ase ASE, w io.Writer) (err error) {
-
-	//	write signature
-
-	//	write version
-
-	//	write number of blocks
-
-	//	write details of each block
-
-	return
-}
-
 type ASE struct {
 	signature [4]uint8
 	version   [2]int16
 	numBlocks int32
 	Colors    []Color
 	Groups    []Group
+	Blocks    []block
 }
 
 //	ASE Files start are signed with ASEF at the beginning of the file
@@ -133,6 +122,76 @@ func (ase *ASE) readSignature(r io.Reader) (err error) {
 	return
 }
 
+func Encode(ase ASE, w io.Writer) (err error) {
+
+	if err = ase.writeSignature(w); err != nil {
+		return
+	}
+
+	if err = ase.writeVersion(w); err != nil {
+		return
+	}
+
+	if err = ase.writeNumBlock(w); err != nil {
+		return
+	}
+
+	var g Group
+
+	//Group color index
+	j := 0
+
+	//Group index
+	k := 0
+
+	//	itereate based on our block count
+	for i := 0; i < int(ase.numBlocks); i++ {
+
+		b := ase.Blocks[i]
+
+		if err = b.Write(w); err != nil {
+			return
+		}
+
+		switch b.Type {
+			case color:
+				c := Color{}
+
+				if g.Name == "" {
+					c = ase.Colors[i]
+				} else {
+					c = g.Colors[j]
+					j++
+				}
+
+
+				if err = c.write(w); err != nil {
+					return
+				}
+
+				break
+			case groupStart:
+				g = ase.Groups[k]
+				if err = g.write(w); err != nil {
+					return
+				}
+
+				k++
+				break
+			case groupEnd:
+				g = Group{}
+				j = 0
+				break
+			default:
+				err = ErrInvalidBlockType
+				return
+		}
+
+	}
+
+	return
+}
+
 //	ASE version. Should be 1.0
 func (ase *ASE) readVersion(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &ase.version)
@@ -146,4 +205,16 @@ func (ase *ASE) readNumBlock(r io.Reader) error {
 //	returns the file signature in human readable format
 func (ase *ASE) Signature() string {
 	return string(ase.signature[0:])
+}
+
+func (ase *ASE) writeSignature(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.signature)
+}
+
+func (ase *ASE) writeVersion(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.version)
+}
+
+func (ase *ASE) writeNumBlock(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, ase.numBlocks)
 }

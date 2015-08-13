@@ -46,3 +46,23 @@ func (block *block) readType(r io.Reader) error {
 func (block *block) readLength(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &block.Length)
 }
+
+func (b *block) Write(w io.Writer) (err error) {
+	if err = b.writeType(w); err != nil {
+		return
+	}
+
+	if err= b.writeLength(w); err != nil {
+		return
+	}
+
+	return
+}
+
+func (block *block) writeType(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, block.Type)
+}
+
+func (block *block) writeLength(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, block.Length)
+}
