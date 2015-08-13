@@ -71,12 +71,16 @@ func (group *Group) write(w io.Writer) (err error) {
 	return nil
 }
 
+// Wrapper around writing a group start header.
 func (group *Group) writeBlockStart(w io.Writer) (err error) {
 	return binary.Write(w, binary.BigEndian, groupStart)
 }
 
+// Wrapper around writing a group end header.
 func (group *Group) writeBlockEnd(w io.Writer) (err error) {
-	return binary.Write(w, binary.BigEndian, groupEnd)
+	// First writes the groupEnd block followed by a terminating zero.
+	binary.Write(w, binary.BigEndian, groupEnd)
+	return binary.Write(w, binary.BigEndian, uint16(0x0000))
 }
 
 // Encode the color's name length.
