@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrInvalidFile    = errors.New("ase: file not an ASE file")
-	ErrInvalidVersion = errors.New("ase: version is not 1.0")
+	ErrInvalidFile      = errors.New("ase: file not an ASE file")
+	ErrInvalidVersion   = errors.New("ase: version is not 1.0")
 	ErrInvalidBlockType = errors.New("ase: invalid block type")
 )
 
@@ -24,21 +24,15 @@ type ASE struct {
 
 //	ASE File Spec http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase
 
-//	Decode a valid ASE input
+//	Decodes a valid ASE input.
 func Decode(r io.Reader) (ase ASE, err error) {
-
-	//	signature
 	if err = ase.readSignature(r); err != nil {
 		return
 	}
-
-	//	file version
 	if err = ase.readVersion(r); err != nil {
 		return
 	}
-
-	//	block count
-	if err = ase.readNumBlock(r); err != nil {
+	if err = ase.readNumBlocks(r); err != nil {
 		return
 	}
 
@@ -84,6 +78,7 @@ func Decode(r io.Reader) (ase ASE, err error) {
 
 			//	reset our group struct
 			g = Group{}
+
 			break
 		default:
 			err = ErrInvalidBlockType
@@ -108,28 +103,18 @@ func DecodeFile(file string) (ase ASE, err error) {
 
 // Encodes an ASE into any `w` that satisfies the io.Writer interface.
 func Encode(ase ASE, w io.Writer) (err error) {
-
-	//	write signature
 	if err = ase.writeSignature(w); err != nil {
 		return err
 	}
-
-	//	write version
 	if err = ase.writeVersion(w); err != nil {
 		return err
 	}
-
-	// write number of blocks
 	if err = ase.writeNumBlocks(w); err != nil {
 		return err
 	}
-
-	// Write the details for colors
 	if err = ase.writeColors(w); err != nil {
 		return err
 	}
-
-	// Write the details for groups
 	if err = ase.writeGroups(w); err != nil {
 		return err
 	}
@@ -137,25 +122,17 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	return nil
 }
 
-func (ase *ASE) writeGroups(w io.Writer) (err error) {
-	for _, group := range ase.Groups {
-		if err = group.write(w); err != nil {
-			return err
-		}
-	}
-	return nil
+//	Returns the file signature in a human readable format.
+func (ase *ASE) Signature() string {
+	return string(ase.signature[0:])
 }
 
-// Encode the data for ase.Colors according to the ASE spec.
-func (ase *ASE) writeColors(w io.Writer) (err error) {
-	for _, color := range ase.Colors {
-		if err = color.write(w); err != nil {
-			return err
-		}
-	}
-	return nil
+// Returns the file version in a human readable format.
+func (ase *ASE) Version() string {
+	return strconv.Itoa(int(ase.version[0])) + "." + strconv.Itoa(int(ase.version[1]))
 }
 
+// Reads the signature of the ASE file.
 func (ase *ASE) readSignature(r io.Reader) (err error) {
 	//	Read the signature
 	if err = binary.Read(r, binary.BigEndian, &ase.signature); err != nil {
@@ -185,8 +162,8 @@ func (ase *ASE) readVersion(r io.Reader) (err error) {
 	return
 }
 
-//	Reads the total number of blocks in the ASE file
-func (ase *ASE) readNumBlock(r io.Reader) error {
+//	Reads the total number of blocks of the ASE file.
+func (ase *ASE) readNumBlocks(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &ase.numBlocks)
 }
 
@@ -224,12 +201,22 @@ func (ase *ASE) writeNumBlocks(w io.Writer) (err error) {
 	return binary.Write(w, binary.BigEndian, blocks)
 }
 
-//	Returns the file signature in a human readable format.
-func (ase *ASE) Signature() string {
-	return string(ase.signature[0:])
+// Encode the data for ase.Colors according to the ASE spec.
+func (ase *ASE) writeColors(w io.Writer) (err error) {
+	for _, color := range ase.Colors {
+		if err = color.write(w); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// Returns the file version in a human readable format.
-func (ase *ASE) Version() string {
-	return strconv.Itoa(int(ase.version[0])) + "." + strconv.Itoa(int(ase.version[1]))
+// Encode the data for ase.Groups according to the ASE spec.
+func (ase *ASE) writeGroups(w io.Writer) (err error) {
+	for _, group := range ase.Groups {
+		if err = group.write(w); err != nil {
+			return err
+		}
+	}
+	return nil
 }
