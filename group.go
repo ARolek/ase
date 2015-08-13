@@ -13,6 +13,7 @@ type Group struct {
 	Colors  []Color
 }
 
+// Decode an ASE group.
 func (group *Group) read(r io.Reader) (err error) {
 	if err = group.readNameLen(r); err != nil {
 		return err
@@ -21,10 +22,12 @@ func (group *Group) read(r io.Reader) (err error) {
 	return group.readName(r)
 }
 
+// Decode a group's name length.
 func (group *Group) readNameLen(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &group.nameLen)
 }
 
+// Decode a group's name.
 func (group *Group) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
 	name := make([]uint16, group.nameLen)
@@ -38,9 +41,10 @@ func (group *Group) readName(r io.Reader) (err error) {
 	return nil
 }
 
+// Encode a group's block headers (starting and ending), metadata and colors.
 func (group *Group) write(w io.Writer) (err error) {
 
-	// Write group start headers (block entry, block length,  nameLen, name)
+	// Write group start headers (block entry, block length, nameLen, name)
 	if err = group.writeBlockStart(w); err != nil {
 		return err
 	}
@@ -56,7 +60,7 @@ func (group *Group) write(w io.Writer) (err error) {
 		return err
 	}
 
-	// Write group's colors
+	// Encode the group's color data.
 	for _, color := range group.Colors {
 		if err = color.write(w); err != nil {
 			return err

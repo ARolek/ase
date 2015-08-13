@@ -23,8 +23,7 @@ type Color struct {
 	Type    string // Global, Spot, Normal
 }
 
-// Read decodes a color's fields from an io.Reader interface
-// in the order specified by the ASE specification.
+// Decode an ASE color.
 func (color *Color) read(r io.Reader) (err error) {
 
 	if err = color.readNameLen(r); err != nil {
@@ -50,12 +49,12 @@ func (color *Color) read(r io.Reader) (err error) {
 	return nil
 }
 
-// Reads the color's name length.
+// Decode the color's name length.
 func (color *Color) readNameLen(r io.Reader) error {
 	return binary.Read(r, binary.BigEndian, &color.nameLen)
 }
 
-// Reads the color's name.
+// Decode the color's name.
 func (color *Color) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
 	name := make([]uint16, color.nameLen) // assumes the nameLen was already defined.
@@ -70,7 +69,7 @@ func (color *Color) readName(r io.Reader) (err error) {
 	return nil
 }
 
-// Reads the color's model.
+// Decode the color's model.
 func (color *Color) readModel(r io.Reader) (err error) {
 	// make array for our color model, where four is the max possible
 	// amount of characters (RGB, LAB, CMYK, Gray).
@@ -85,7 +84,7 @@ func (color *Color) readModel(r io.Reader) (err error) {
 	return nil
 }
 
-// Reads the color's values.
+// Decode the color's values.
 func (color *Color) readValues(r io.Reader) (err error) {
 	switch color.Model {
 	case "RGB":
@@ -134,7 +133,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 	return nil
 }
 
-// Read the color's type.
+// Decode the color's type.
 func (color *Color) readType(r io.Reader) (err error) {
 
 	colorType := make([]int16, 1)

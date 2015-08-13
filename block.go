@@ -16,8 +16,7 @@ const (
 	colorEntry = uint16(0x0001)
 )
 
-// Read decodes a block's type and length. from an io.Reader interface
-// in the order specified by the ASE specification.
+// Decode an ASE block.
 func (b *block) Read(r io.Reader) (err error) {
 	if err = b.readType(r); err != nil {
 		return
