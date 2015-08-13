@@ -36,24 +36,6 @@ var testColors = []Color{
 		Values: []float32{0.9137255, -5, 94},
 		Type:   "Spot",
 	},
-	Color{
-		Name:   "Red",
-		Model:  "RGB",
-		Values: []float32{1, 0, 0},
-		Type:   "Global",
-	},
-	Color{
-		Name:   "Green",
-		Model:  "RGB",
-		Values: []float32{0, 1, 0},
-		Type:   "Global",
-	},
-	Color{
-		Name:   "Blue",
-		Model:  "RGB",
-		Values: []float32{0, 0, 1},
-		Type:   "Global",
-	},
 }
 
 var testGroup = Group{
@@ -123,7 +105,7 @@ func TestDecode(t *testing.T) {
 	}
 
 	// Check the ASE's Colors
-	expectedColors := testColors[0:5]
+	expectedColors := testColors
 	expectedNumColors := len(expectedColors)
 	actualNumColors := len(ase.Colors)
 
@@ -224,14 +206,14 @@ func TestEncode(t *testing.T) {
 		t.Error("ase: version is not 1.0")
 	}
 
-	expectedNumBlocks := int32(13)
+	expectedNumBlocks := int32(10)
 	actualNumBlocks := ase.numBlocks
 	if actualNumBlocks != expectedNumBlocks {
 		t.Error("ase: expected", expectedNumBlocks,
 			" blocks to be present, got: ", actualNumBlocks)
 	}
 
-	expectedAmountOfColors := 8
+	expectedAmountOfColors := 5
 	if len(ase.Colors) != expectedAmountOfColors {
 		t.Error("ase: expected", expectedAmountOfColors, " colors to be present")
 	}
