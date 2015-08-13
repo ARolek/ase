@@ -158,7 +158,11 @@ func (color *Color) write(w io.Writer) (err error) {
 		return
 	}
 
-	return color.writeColorType(w)
+	if err = color.writeColorType(w); err != nil {
+		return
+	}
+
+	return
 }
 
 func (color *Color) writeColorName(w io.Writer) error {
@@ -169,12 +173,20 @@ func (color *Color) writeColorName(w io.Writer) error {
 }
 
 func (color *Color) writeColorModel(w io.Writer) error {
-	return binary.Write(w,binary.BigEndian, []byte(color.Model))
+	colorSlice := []byte(color.Model)
+
+	//If color model is either RGB or LAB append space (0x20)
+	if color.Model == "RGB" || color.Model == "LAB" {
+		colorSlice = append(colorSlice, 0x20)
+	}
+
+	return binary.Write(w,binary.BigEndian, colorSlice)
 }
 
 func (color *Color) writeColorValues(w io.Writer) error {
 	var err error
 	for _, cv := range color.Values {
+
 		err = binary.Write(w,binary.BigEndian, cv)
 
 		if(err != nil){

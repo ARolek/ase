@@ -13,6 +13,7 @@ type Group struct {
 }
 
 func (group *Group) read(r io.Reader) (err error) {
+
 	if err = group.readNameLen(r); err != nil {
 		return
 	}
@@ -38,11 +39,11 @@ func (group *Group) readName(r io.Reader) (err error) {
 }
 
 func (group *Group) write(w io.Writer) (err error){
-	if err = group.writeName(w); err != nil {
+	if err = group.writeNameLen(w); err != nil {
 		return
 	}
 
-	if err = group.writeNameLen(w); err != nil {
+	if err = group.writeName(w); err != nil {
 		return
 	}
 
