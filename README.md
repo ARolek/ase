@@ -139,9 +139,6 @@ func main() {
 	// applied to the underlying writer.
 	w.Flush()
 }
-
-
-
 ```
 
 # todo
