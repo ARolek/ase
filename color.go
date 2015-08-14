@@ -27,26 +27,26 @@ type Color struct {
 func (color *Color) read(r io.Reader) (err error) {
 
 	if err = color.readNameLen(r); err != nil {
-		return err
+		return
 	}
 
 	if err = color.readName(r); err != nil {
-		return err
+		return
 	}
 
 	if err = color.readModel(r); err != nil {
-		return err
+		return
 	}
 
 	if err = color.readValues(r); err != nil {
-		return err
+		return
 	}
 
 	if err = color.readType(r); err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }
 
 // Decode the color's name length.
@@ -59,14 +59,14 @@ func (color *Color) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
 	name := make([]uint16, color.nameLen) // assumes the nameLen was already defined.
 	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
-		return err
+		return
 	}
 
 	//	decode our name. we trim off the last byte since it's zero terminated
 	// utf16.Decode returns a slice of runes from an input of []uint16
 	color.Name = string(utf16.Decode(name[:len(name)-1]))
 
-	return nil
+	return
 }
 
 // Decode the color's model.
@@ -75,13 +75,13 @@ func (color *Color) readModel(r io.Reader) (err error) {
 	// amount of characters (RGB, LAB, CMYK, Gray).
 	colorModel := make([]uint8, 4)
 	if err = binary.Read(r, binary.BigEndian, colorModel); err != nil {
-		return err
+		return
 	}
 
 	// Assign the string version of the `colorModel`
 	color.Model = strings.TrimSpace(string(colorModel[0:]))
 
-	return nil
+	return
 }
 
 // Decode the color's values.
@@ -92,7 +92,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 
 		//	read into rbg array
 		if err = binary.Read(r, binary.BigEndian, &rgb); err != nil {
-			return err
+			return
 		}
 		color.Values = rgb
 		break
@@ -101,7 +101,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 
 		//	read into lab array
 		if err = binary.Read(r, binary.BigEndian, &lab); err != nil {
-			return err
+			return
 		}
 
 		color.Values = lab
@@ -111,7 +111,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 
 		//	read into cmyk array
 		if err = binary.Read(r, binary.BigEndian, &cmyk); err != nil {
-			return err
+			return
 		}
 
 		color.Values = cmyk
@@ -121,7 +121,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 
 		//	read into gray array
 		if err = binary.Read(r, binary.BigEndian, &gray); err != nil {
-			return err
+			return
 		}
 
 		color.Values = gray
@@ -130,7 +130,7 @@ func (color *Color) readValues(r io.Reader) (err error) {
 		return ErrInvalidColorValue
 	}
 
-	return nil
+	return
 }
 
 // Decode the color's type.
@@ -140,7 +140,7 @@ func (color *Color) readType(r io.Reader) (err error) {
 
 	//	read into colorType array
 	if err = binary.Read(r, binary.BigEndian, colorType); err != nil {
-		return err
+		return
 	}
 
 	switch colorType[0] {
@@ -157,7 +157,7 @@ func (color *Color) readType(r io.Reader) (err error) {
 		return ErrInvalidColorType
 	}
 
-	return nil
+	return
 }
 
 // Encodes a color's attributes according to the ASE specification.
@@ -165,48 +165,48 @@ func (color *Color) write(w io.Writer) (err error) {
 
 	// Write the block type
 	if err = color.writeBlockType(w); err != nil {
-		return err
+		return
 	}
 
 	// Write the block length
 	if err = color.writeBlockLength(w); err != nil {
-		return err
+		return
 	}
 
 	// Write the color data
 	if err = color.writeNameLen(w); err != nil {
-		return err
+		return
 	}
 
 	if err = color.writeName(w); err != nil {
-		return err
+		return
 	}
 
 	if err = color.writeModel(w); err != nil {
-		return err
+		return
 	}
 
 	if err = color.writeValues(w); err != nil {
-		return err
+		return
 	}
 
 	if err = color.writeType(w); err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }
 
 // Write color's block length as a part of the ASE encoding.
 func (color *Color) writeBlockLength(w io.Writer) (err error) {
 	blockLength, err := color.calculateBlockLength()
 	if err != nil {
-		return err
+		return
 	}
 	if err = binary.Write(w, binary.BigEndian, blockLength); err != nil {
-		return err
+		return
 	}
-	return nil
+	return
 }
 
 // Calculates the block length to be written based on the color's attributes.
@@ -214,22 +214,24 @@ func (color *Color) calculateBlockLength() (blockLength int32, err error) {
 	buf := new(bytes.Buffer)
 
 	if err = color.writeNameLen(buf); err != nil {
-		return 0, err
+		return
 	}
 	if err = color.writeName(buf); err != nil {
-		return 0, err
+		return
 	}
 	if err = color.writeModel(buf); err != nil {
-		return 0, err
+		return
 	}
 	if err = color.writeValues(buf); err != nil {
-		return 0, err
+		return
 	}
 	if err = color.writeType(buf); err != nil {
-		return 0, err
+		return
 	}
 
-	return int32(buf.Len()), nil
+	blockLength = int32(buf.Len())
+
+	return
 }
 
 // Encode the color's name length.

@@ -1,49 +1,3 @@
-# ase
-ASE decoder
-
-Package for decoding ASE (Adobe Swatch Exchange) files into a struct.
-
-The ASE specification can be found [here](http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase).
-
-# Install
-
-`$ go get github.com/arolek/ase`
-
-# Getting started
-
-the ASE package exposes a Decode method. You simply pass an io.Reader interface to ase.Decode and it will return an ASE struct of the decoded data. For example:
-
-## Examples
-
-### Decoding
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/ARolek/ase"
-)
-
-func main() {
-	//	open the file
-	f, err := os.Open("/path/to/test.ase")
-	if err != nil {
-		log.Println(err)
-	}
-
-	//	decode can take in any io.Reader
-	ase, err := ase.Decode(f)
-	if err != nil {
-		log.Println(err)
-	}
-
-	log.Printf("%+v\n", ase)
-}
-```
-
-## Encoding
-```go
 package main
 
 import (
@@ -125,12 +79,7 @@ func main() {
 	defer f.Close()
 
 	//	encode our ASE file
-	if err = ase.Encode(sampleAse, f){
+	if err = ase.Encode(sampleAse, f); err != nil {
 		panic(err)
 	}
 }
-```
-
-### Credits
-
-Thanks to [francistmakes](https://github.com/francismakes) for the killer work on the Encoding part of the package! 

@@ -45,7 +45,9 @@ func Decode(r io.Reader) (ase ASE, err error) {
 		b := block{}
 
 		//	decode the block container
-		b.Read(r)
+		if err = b.Read(r); err != nil {
+			return
+		}
 
 		//	switch on block type
 		switch b.Type {
@@ -69,7 +71,9 @@ func Decode(r io.Reader) (ase ASE, err error) {
 			g = Group{}
 
 			//	read the group
-			g.read(r)
+			if err = g.read(r); err != nil {
+				return
+			}
 
 			break
 		case groupEnd:

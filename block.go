@@ -22,11 +22,7 @@ func (b *block) Read(r io.Reader) (err error) {
 		return
 	}
 
-	if err = b.readLength(r); err != nil {
-		return
-	}
-
-	return
+	return b.readLength(r)
 }
 
 // Reads the block's type.

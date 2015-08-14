@@ -16,7 +16,7 @@ type Group struct {
 // Decode an ASE group.
 func (group *Group) read(r io.Reader) (err error) {
 	if err = group.readNameLen(r); err != nil {
-		return err
+		return
 	}
 
 	return group.readName(r)
@@ -32,13 +32,13 @@ func (group *Group) readName(r io.Reader) (err error) {
 	//	make array for our color name based on block length
 	name := make([]uint16, group.nameLen)
 	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
-		return err
+		return
 	}
 
 	//	decode our name. we trim off the last byte since it's zero terminated
 	group.Name = string(utf16.Decode(name[:len(name)-1]))
 
-	return nil
+	return
 }
 
 // Encode a group's block headers (starting and ending), metadata and colors.
@@ -46,33 +46,33 @@ func (group *Group) write(w io.Writer) (err error) {
 
 	// Write group start headers (block entry, block length, nameLen, name)
 	if err = group.writeBlockStart(w); err != nil {
-		return err
+		return
 	}
 
 	if err = group.writeBlockLength(w); err != nil {
-		return err
+		return
 	}
 
 	if err = group.writeNameLen(w); err != nil {
-		return err
+		return
 	}
 	if err = group.writeName(w); err != nil {
-		return err
+		return
 	}
 
 	// Encode the group's color data.
 	for _, color := range group.Colors {
 		if err = color.write(w); err != nil {
-			return err
+			return
 		}
 	}
 
 	// Write the group's closing headers
 	if err = group.writeBlockEnd(w); err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }
 
 // Wrapper around writing a group start header.
@@ -84,10 +84,10 @@ func (group *Group) writeBlockStart(w io.Writer) (err error) {
 func (group *Group) writeBlockEnd(w io.Writer) (err error) {
 	// First writes the groupEnd block followed by two terminating zeroes.
 	if err = binary.Write(w, binary.BigEndian, groupEnd); err != nil {
-		return err
+		return
 	}
 	if err = binary.Write(w, binary.BigEndian, uint16(0x0000)); err != nil {
-		return err
+		return
 	}
 	return binary.Write(w, binary.BigEndian, uint16(0x0000))
 }
@@ -114,7 +114,7 @@ func (group *Group) NameLen() uint16 {
 func (group *Group) writeBlockLength(w io.Writer) (err error) {
 	blockLength, err := group.calculateBlockLength()
 	if err != nil {
-		return err
+		return
 	}
 	return binary.Write(w, binary.BigEndian, blockLength)
 }
@@ -123,10 +123,13 @@ func (group *Group) writeBlockLength(w io.Writer) (err error) {
 func (group *Group) calculateBlockLength() (val int32, err error) {
 	buf := new(bytes.Buffer)
 	if err = group.writeNameLen(buf); err != nil {
-		return 0, err
+		return
 	}
 	if err = group.writeName(buf); err != nil {
-		return 0, err
+		return
 	}
-	return int32(buf.Len()), nil
+
+	val = int32(buf.Len())
+
+	return
 }
