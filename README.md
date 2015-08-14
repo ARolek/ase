@@ -1,11 +1,7 @@
 # ase
-ASE decoder
-
-Package for decoding ASE (Adobe Swatch Exchange) files into a struct.
+Golang package for decoding and encoding ASE (Adobe Swatch Exchange) files.
 
 The ASE specification can be found [here](http://www.selapa.net/swatches/colors/fileformats.php#adobe_ase).
-
-Note: this was one of my first projects in Go as well as with binary decoding. It's in desperate need of a refactor. Will hopefully have time to make updates soon. 
 
 # Install
 
@@ -13,7 +9,7 @@ Note: this was one of my first projects in Go as well as with binary decoding. I
 
 # Getting started
 
-the ASE package exposes a Decode method. You simply pass an io.Reader interface to ase.Decode and it will return an ASE struct of the decoded data. For example:
+The ASE package exposes a Decode and Encode method. You simply pass an io.Reader interface to ase.Decode and it will return an ASE struct of the decoded data. For convenience, a DecodeFile method is available to decode an existing ASE file. For encoding, simply initialize an ASE struct and populate it with the appropriate Groups and Colors data.
 
 ## Examples
 
@@ -133,6 +129,8 @@ func main() {
 
 	// Create a new writer
 	w := bufio.NewWriter(f)
+	
+	// Encode the ASE 
 	ase.Encode(sampleAse, w)
 
 	// Use Flush to ensure all buffered operations have been
