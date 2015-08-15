@@ -198,14 +198,14 @@ func (color *Color) writeColorValues(w io.Writer) error {
 
 func (color *Color) writeColorType(w io.Writer) error {
 	var cType int16
-	switch {
-		case color.Type == "Global":
+	switch color.Type {
+		case "Global":
 			cType = 0
 			break
-		case color.Type == "Spot":
+		case "Spot":
 			cType = 1
 			break
-		case color.Type ==  "Normal":
+		case "Normal":
 			cType = 2
 			break
 		default:
