@@ -144,6 +144,10 @@ func Encode(ase ASE, w io.Writer) (err error) {
 	//Group index
 	k := 0
 
+	//Color index
+	l := 0
+
+
 	//	itereate based on our block count
 	for i := 0; i < int(ase.numBlocks); i++ {
 
@@ -158,7 +162,8 @@ func Encode(ase ASE, w io.Writer) (err error) {
 				c := Color{}
 
 				if g.Name == "" {
-					c = ase.Colors[i]
+					c = ase.Colors[l]
+					l++
 				} else {
 					c = g.Colors[j]
 					j++
