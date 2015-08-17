@@ -56,6 +56,10 @@ func (color *Color) readNameLen(r io.Reader) error {
 
 // Decode the color's name.
 func (color *Color) readName(r io.Reader) (err error) {
+	if color.nameLen == 0 {
+		return
+	}
+
 	//	make array for our color name based on block length
 	name := make([]uint16, color.nameLen) // assumes the nameLen was already defined.
 	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
