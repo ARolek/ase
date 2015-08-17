@@ -132,3 +132,6 @@ func main() {
 ### Credits
 
 Thanks to [francistmakes](https://github.com/francismakes) for the killer work on the Encoding part of the package! 
+
+### License
+See LICENSE file in repository.
