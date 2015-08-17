@@ -29,6 +29,10 @@ func (group *Group) readNameLen(r io.Reader) error {
 
 // Decode a group's name.
 func (group *Group) readName(r io.Reader) (err error) {
+	if group.nameLen == 0 {
+		return
+	}
+
 	//	make array for our color name based on block length
 	name := make([]uint16, group.nameLen)
 	if err = binary.Read(r, binary.BigEndian, &name); err != nil {
